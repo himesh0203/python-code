@@ -1,0 +1,64 @@
+# Defining a function
+def greet(name):
+    return f"Hello, {name}!"
+
+# Calling a function
+print(greet("Alice"))  # Output: Hello, Alice!
+
+# Function with default argument
+def power(base, exponent=2):
+    return base ** exponent
+
+print(power(3))      # 9 (3 squared)
+print(power(2, 3))   # 8 (2 cubed)
+
+
+
+
+
+
+# Define a class
+class Person:
+    def __init__(self, name, age):
+        self.name = name  # instance variable
+        self.age = age
+
+    def introduce(self):
+        print(f"My name is {self.name}, and I am {self.age} years old.")
+
+# Create an object (instance) of the class
+p1 = Person("John", 30)
+p1.introduce()  # Output: My name is John, and I am 30 years old.
+
+
+
+
+
+# Parent class
+class Animal:
+    def __init__(self, name):
+        self.name = name
+
+    def speak(self):
+        print(f"{self.name} makes a sound.")
+
+# Child class inherits from Animal
+class Dog(Animal):
+    def speak(self):
+        print(f"{self.name} barks.")
+
+class Cat(Animal):
+    def speak(self):
+        print(f"{self.name} meows.")
+
+# Using the classes
+dog = Dog("Buddy")
+cat = Cat("Whiskers")
+
+dog.speak()  
+cat.speak()  
+
+
+
+
+                        
