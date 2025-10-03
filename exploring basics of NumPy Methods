@@ -1,0 +1,75 @@
+import numpy as np
+
+# From list
+arr = np.array([1, 2, 3, 4])
+print(arr)  # [1 2 3 4]
+
+# Multi-dimensional array
+arr2d = np.array([[1, 2], [3, 4]])
+print(arr2d)
+# [[1 2]
+#  [3 4]]
+
+
+
+print(arr.shape)   # (4,) - size of each dimension
+print(arr2d.shape) # (2, 2)
+
+print(arr.dtype)   # data type, e.g. int64
+print(arr.size)    # total number of elements
+print(arr.ndim)    # number of dimensions
+
+
+
+print(np.zeros(5))        # array of 5 zeros
+print(np.ones((2,3)))     # 2x3 array of ones
+print(np.arange(0, 10, 2)) # [0 2 4 6 8]
+print(np.linspace(0, 1, 5)) # 5 values between 0 and 1 inclusive
+print(np.eye(3))          # 3x3 identity matrix
+
+
+
+
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+
+print(a + b)   # [5 7 9]
+print(a - b)   # [-3 -3 -3]
+print(a * b)   # [4 10 18] element-wise multiply
+print(a / b)   # [0.25 0.4 0.5] element-wise divide
+
+print(a.dot(b))  # Dot product: 1*4 + 2*5 + 3*6 = 32
+
+
+
+print(np.sqrt(a))   # [1. 1.414 1.732]
+print(np.exp(a))    # e^a
+print(np.sin(a))    # sine of each element
+print(np.log(a))    # natural log
+
+
+
+
+arr = np.array([10, 20, 30, 40, 50])
+print(arr[0])     # 10
+print(arr[1:4])   # [20 30 40]
+print(arr[:3])    # [10 20 30]
+
+arr2d = np.array([[1,2,3],[4,5,6],[7,8,9]])
+print(arr2d[0,1]) # 2
+print(arr2d[:, 2]) # all rows, column 2 -> [3 6 9]
+
+
+
+arr = np.arange(1, 10)
+print(arr.reshape((3,3)))
+
+
+
+data = np.array([1, 2, 3, 4, 5])
+print(np.mean(data))    # 3.0
+print(np.median(data))  # 3.0
+print(np.std(data))     # standard deviation
+print(np.sum(data))     # 15
+print(np.min(data))     # 1
+print(np.max(data))     # 5
