@@ -1,0 +1,197 @@
+from collections import deque
+
+# --- Linked List Implementation ---
+
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.next = None
+
+class LinkedList:
+    def __init__(self):
+        self.head = None
+
+    def insert_at_end(self, data):
+        new_node = Node(data)
+        if not self.head:
+            self.head = new_node
+            return
+        curr = self.head
+        while curr.next:
+            curr = curr.next
+        curr.next = new_node
+
+    def delete_value(self, data):
+        curr = self.head
+        prev = None
+        while curr:
+            if curr.data == data:
+                if prev:
+                    prev.next = curr.next
+                else:
+                    self.head = curr.next
+                print(f"Deleted {data} from linked list.")
+                return
+            prev = curr
+            curr = curr.next
+        print(f"Value {data} not found in linked list.")
+
+    def display(self):
+        curr = self.head
+        if not curr:
+            print("Linked list is empty.")
+            return
+        print("Linked List: ", end="")
+        while curr:
+            print(curr.data, end=" -> " if curr.next else "")
+            curr = curr.next
+        print()
+
+# --- Stack Implementation ---
+
+class Stack:
+    def __init__(self):
+        self.stack = []
+
+    def push(self, data):
+        self.stack.append(data)
+        print(f"Pushed {data} onto stack.")
+
+    def pop(self):
+        if self.is_empty():
+            print("Stack is empty, cannot pop.")
+            return
+        data = self.stack.pop()
+        print(f"Popped {data} from stack.")
+
+    def peek(self):
+        if self.is_empty():
+            print("Stack is empty.")
+            return
+        print(f"Top element is: {self.stack[-1]}")
+
+    def is_empty(self):
+        return len(self.stack) == 0
+
+    def display(self):
+        if self.is_empty():
+            print("Stack is empty.")
+            return
+        print("Stack from bottom to top:", self.stack)
+
+# --- Queue Implementation ---
+
+class Queue:
+    def __init__(self):
+        self.queue = deque()
+
+    def enqueue(self, data):
+        self.queue.append(data)
+        print(f"Enqueued {data} into queue.")
+
+    def dequeue(self):
+        if self.is_empty():
+            print("Queue is empty, cannot dequeue.")
+            return
+        data = self.queue.popleft()
+        print(f"Dequeued {data} from queue.")
+
+    def is_empty(self):
+        return len(self.queue) == 0
+
+    def display(self):
+        if self.is_empty():
+            print("Queue is empty.")
+            return
+        print("Queue front -> rear:", list(self.queue))
+
+# --- Menu Driven Program ---
+
+def main():
+    ll = LinkedList()
+    stack = Stack()
+    queue = Queue()
+
+    while True:
+        print("\n--- Menu ---")
+        print("1. Linked List Operations")
+        print("2. Stack Operations")
+        print("3. Queue Operations")
+        print("4. Exit")
+
+        choice = input("Enter choice: ")
+
+        if choice == "1":
+            while True:
+                print("\nLinked List Menu")
+                print("a. Insert at end")
+                print("b. Delete value")
+                print("c. Display list")
+                print("d. Back to main menu")
+                c = input("Choose an option: ")
+                if c == "a":
+                    val = input("Enter value to insert: ")
+                    ll.insert_at_end(val)
+                elif c == "b":
+                    val = input("Enter value to delete: ")
+                    ll.delete_value(val)
+                elif c == "c":
+                    ll.display()
+                elif c == "d":
+                    break
+                else:
+                    print("Invalid choice.")
+        
+        elif choice == "2":
+            while True:
+                print("\nStack Menu")
+                print("a. Push")
+                print("b. Pop")
+                print("c. Peek")
+                print("d. Display stack")
+                print("e. Back to main menu")
+                c = input("Choose an option: ")
+                if c == "a":
+                    val = input("Enter value to push: ")
+                    stack.push(val)
+                elif c == "b":
+                    stack.pop()
+                elif c == "c":
+                    stack.peek()
+                elif c == "d":
+                    stack.display()
+                elif c == "e":
+                    break
+                else:
+                    print("Invalid choice.")
+        
+        elif choice == "3":
+            while True:
+                print("\nQueue Menu")
+                print("a. Enqueue")
+                print("b. Dequeue")
+                print("c. Display queue")
+                print("d. Back to main menu")
+                c = input("Choose an option: ")
+                if c == "a":
+                    val = input("Enter value to enqueue: ")
+                    queue.enqueue(val)
+                elif c == "b":
+                    queue.dequeue()
+                elif c == "c":
+                    queue.display()
+                elif c == "d":
+                    break
+                else:
+                    print("Invalid choice.")
+        
+        elif choice == "4":
+            print("Exiting program. Goodbye!")
+            break
+        
+        else:
+            print("Invalid choice. Try again.")
+
+if __name__ == "__main__":
+    main()
+
