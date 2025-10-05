@@ -1,0 +1,87 @@
+# A simple dictionary to store course data with prerequisites and career paths.
+# You can expand this with more subjects, career paths, and a wider range of percentages.
+COURSES = {
+    "Computer Science": {
+        "subjects": ["Mathematics", "Physics", "Computer Science"],
+        "min_percentage": 75,
+        "goals": ["Software Development", "Data Science", "Cybersecurity"]
+    },
+    "Mechanical Engineering": {
+        "subjects": ["Mathematics", "Physics", "Chemistry"],
+        "min_percentage": 70,
+        "goals": ["Automotive Industry", "Robotics", "Manufacturing"]
+    },
+    "Biotechnology": {
+        "subjects": ["Biology", "Chemistry", "Physics"],
+        "min_percentage": 65,
+        "goals": ["Research", "Healthcare", "Pharmaceuticals"]
+    },
+    "Business Administration": {
+        "subjects": ["Commerce", "Economics", "Mathematics"],
+        "min_percentage": 60,
+        "goals": ["Management", "Finance", "Marketing"]
+    },
+    "Graphic Design": {
+        "subjects": ["Arts", "Computer Science"],
+        "min_percentage": 50,
+        "goals": ["Web Design", "Animation", "Advertising"]
+    }
+}
+
+def get_user_input():
+    """
+    Collects student information and preferences.
+    """
+    print("Welcome to the Course Recommender!\n")
+    try:
+        percentage = float(input("Enter your last qualifying exam percentage: "))
+        fav_subject = input("What is your favorite subject? ").strip().title()
+        career_goal = input("What is your main career goal? ").strip().title()
+        return percentage, fav_subject, career_goal
+    except ValueError:
+        print("Invalid input for percentage. Please enter a number.")
+        return None, None, None
+
+def recommend_course(percentage, fav_subject, career_goal):
+    """
+    Provides course recommendations based on user input.
+    """
+    if percentage is None:
+        return
+
+    best_matches = []
+    
+    for course, criteria in COURSES.items():
+        # Check if the percentage meets the minimum requirement
+        if percentage >= criteria["min_percentage"]:
+            # Check for preferred subject overlap
+            subject_match = fav_subject in criteria["subjects"]
+            
+            # Check for career goal alignment
+            goal_match = career_goal in criteria["goals"]
+            
+            # Score the match for prioritization
+            score = 0
+            if subject_match:
+                score += 1
+            if goal_match:
+                score += 1
+            
+            if score > 0:
+                best_matches.append((course, score))
+
+    if not best_matches:
+        print("\nSorry, no courses matched your criteria. You may need to explore different options or improve your percentage.")
+    else:
+        # Sort courses by score in descending order
+        best_matches.sort(key=lambda x: x[1], reverse=True)
+        
+        print("\nBased on your profile, here are some recommended courses:")
+        for course, score in best_matches:
+            print(f"- {course}")
+
+if __name__ == "__main__":
+    user_percentage, user_subject, user_goal = get_user_input()
+    if user_percentage is not None:
+        recommend_course(user_percentage, user_subject, user_goal)
+
