@@ -1,0 +1,64 @@
+import time
+from datetime import datetime as dt # Corrected import statement
+
+# Define the path to the hosts file based on the operating system
+# For Windows: r"C:\Windows\System32\drivers\etc\hosts"
+# For macOS/Linux: "/etc/hosts"
+hosts_path = "/etc/hosts"  # Adjust this path for Windows if necessary
+redirect = "127.0.0.1"
+
+# List of websites to block
+website_list = ["www.facebook.com", "facebook.com", "www.youtube.com", "youtube.com"]
+
+def block_websites():
+    """Blocks websites by adding entries to the hosts file."""
+    try:
+        with open(hosts_path, 'r+') as file:
+            content = file.read()
+            for website in website_list:
+                if website not in content:
+                    file.write(redirect + " " + website + "\n")
+            print("Websites blocked successfully.")
+    except PermissionError:
+        print(f"Error: Permission denied. Run the script as administrator/root to modify {hosts_path}.")
+    except Exception as e:
+        print(f"An error occurred while blocking websites: {e}")
+
+def unblock_websites():
+    """Unblocks websites by removing entries from the hosts file."""
+    try:
+        with open(hosts_path, 'r+') as file:
+            lines = file.readlines()
+            file.seek(0)  # Move the cursor to the beginning of the file
+            for line in lines:
+                # Keep lines that do not contain any of the blocked websites
+                if not any(website in line for website in website_list):
+                    file.write(line)
+            file.truncate()  # Remove any remaining content after the current position
+            print("Websites unblocked successfully.")
+    except PermissionError:
+        print(f"Error: Permission denied. Run the script as administrator/root to modify {hosts_path}.")
+    except Exception as e:
+        print(f"An error occurred while unblocking websites: {e}")
+
+if __name__ == "__main__":
+    # Example usage: Block websites for a certain period, then unblock
+    print("Blocking websites...")
+    block_websites()
+
+    # You can add a loop here to keep the blocking active during specific hours
+    # For example, block during work hours (9 AM to 5 PM)
+    # while True:
+    #     now = dt.now()
+    #     start_time = dt(now.year, now.month, now.day, 9)
+    #     end_time = dt(now.year, now.month, now.day, 17)
+    #
+    #     if start_time < now < end_time:
+    #         block_websites()
+    #     else:
+    #         unblock_websites()
+    #     time.sleep(5) # Check every 5 seconds
+
+    time.sleep(10)  # Simulate a period of blocking
+    print("Unblocking websites...")
+    unblock_websites()
