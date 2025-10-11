@@ -1,0 +1,44 @@
+def binary_search(arr, target):
+    """
+    Performs a binary search on a sorted list to find the target element.
+
+    Args:
+        arr: A sorted list of elements.
+        target: The element to search for.
+
+    Returns:
+        The index of the target element if found, otherwise -1.
+    """
+    low = 0
+    high = len(arr) - 1
+
+    while low <= high:
+        mid = (low + high) // 2  # Calculate the middle index
+
+        if arr[mid] == target:
+            return mid  # Target found at mid index
+        elif arr[mid] < target:
+            low = mid + 1  # Target is in the right half
+        else:
+            high = mid - 1  # Target is in the left half
+
+    return -1  # Target not found in the list
+
+# Example usage:
+my_list = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
+search_target = 23
+search_target_not_found = 100
+
+# Test case 1: Target found
+result_found = binary_search(my_list, search_target)
+if result_found != -1:
+    print(f"Element {search_target} found at index {result_found}.")
+else:
+    print(f"Element {search_target} not found in the list.")
+
+# Test case 2: Target not found
+result_not_found = binary_search(my_list, search_target_not_found)
+if result_not_found != -1:
+    print(f"Element {search_target_not_found} found at index {result_not_found}.")
+else:
+    print(f"Element {search_target_not_found} not found in the list.")
