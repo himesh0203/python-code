@@ -1,0 +1,27 @@
+import time
+
+def countdown(t):
+    """
+    Counts down from 't' seconds and displays the remaining time.
+    
+    Args:
+        t (int): The total time in seconds for the countdown.
+    """
+    while t:
+        mins, secs = divmod(t, 60) # Calculate minutes and seconds
+        timer = '{:02d}:{:02d}'.format(mins, secs) # Format the time as MM:SS
+        print(timer, end='\r') # Print the time, overwriting the previous line
+        time.sleep(1) # Pause for 1 second
+        t -= 1 # Decrement the time
+
+    print("Time's up!")
+
+# Get user input for the countdown time
+try:
+    seconds = int(input("Enter the time in seconds: "))
+    if seconds < 0:
+        print("Please enter a non-negative number of seconds.")
+    else:
+        countdown(seconds)
+except ValueError:
+    print("Invalid input. Please enter an integer.")
