@@ -1,0 +1,93 @@
+import datetime
+
+class Task:
+    def __init__(self, description, category="General", due_date=None):
+        self.description = description
+        self.category = category
+        self.due_date = due_date  # datetime.date object
+        self.completed = False
+
+    def mark_complete(self):
+        self.completed = True
+
+    def __str__(self):
+        status = "Completed" if self.completed else "Pending"
+        due_info = f" (Due: {self.due_date})" if self.due_date else ""
+        return f"[{status}] {self.description} (Category: {self.category}){due_info}"
+
+class ProductivityTracker:
+    def __init__(self):
+        self.tasks = []
+
+    def add_task(self, description, category="General", due_date_str=None):
+        due_date = None
+        if due_date_str:
+            try:
+                due_date = datetime.datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                print("Invalid date format. Please use YYYY-MM-DD.")
+                return
+
+        task = Task(description, category, due_date)
+        self.tasks.append(task)
+        print(f"Task '{description}' added.")
+
+    def view_tasks(self, category=None, show_completed=True):
+        print("\n--- Your Tasks ---")
+        filtered_tasks = self.tasks
+        if category:
+            filtered_tasks = [task for task in filtered_tasks if task.category.lower() == category.lower()]
+        if not show_completed:
+            filtered_tasks = [task for task in filtered_tasks if not task.completed]
+
+        if not filtered_tasks:
+            print("No tasks found matching your criteria.")
+            return
+
+        for i, task in enumerate(filtered_tasks):
+            print(f"{i+1}. {task}")
+
+    def complete_task(self, task_index):
+        if 0 <= task_index < len(self.tasks):
+            self.tasks[task_index].mark_complete()
+            print(f"Task '{self.tasks[task_index].description}' marked as complete.")
+        else:
+            print("Invalid task index.")
+
+def main():
+    tracker = ProductivityTracker()
+
+    while True:
+        print("\n--- Productivity Tracker Menu ---")
+        print("1. Add a new task")
+        print("2. View tasks")
+        print("3. Mark a task as complete")
+        print("4. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            description = input("Enter task description: ")
+            category = input("Enter task category (optional, default: General): ") or "General"
+            due_date_str = input("Enter due date (YYYY-MM-DD, optional): ") or None
+            tracker.add_task(description, category, due_date_str)
+        elif choice == '2':
+            category_filter = input("Enter category to filter by (optional, leave blank for all): ") or None
+            show_completed_input = input("Show completed tasks? (yes/no, default: yes): ").lower()
+            show_completed = show_completed_input != 'no'
+            tracker.view_tasks(category_filter, show_completed)
+        elif choice == '3':
+            tracker.view_tasks() # Show all tasks to allow selection
+            try:
+                task_index = int(input("Enter the number of the task to mark complete: ")) - 1
+                tracker.complete_task(task_index)
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+        elif choice == '4':
+            print("Exiting Productivity Tracker. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
