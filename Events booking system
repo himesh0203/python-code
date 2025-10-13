@@ -1,0 +1,104 @@
+class EventBookingSystem:
+    def __init__(self):
+        self.events = {}  # event_id: {'name', 'date', 'capacity', 'booked'}
+        self.bookings = []  # List of {'event_id', 'user_name', 'num_tickets'}
+        self.next_event_id = 1
+
+    def create_event(self, name, date, capacity):
+        event_id = self.next_event_id
+        self.events[event_id] = {
+            'name': name,
+            'date': date,
+            'capacity': capacity,
+            'booked': 0
+        }
+        self.next_event_id += 1
+        print(f"Event '{name}' created with ID: {event_id}")
+
+    def view_events(self):
+        if not self.events:
+            print("No events available.")
+            return
+
+        print("\n--- Available Events ---")
+        for event_id, event_info in self.events.items():
+            print(f"ID: {event_id}, Name: {event_info['name']}, Date: {event_info['date']}, "
+                  f"Capacity: {event_info['capacity']}, Available: {event_info['capacity'] - event_info['booked']}")
+        print("------------------------")
+
+    def book_tickets(self, event_id, user_name, num_tickets):
+        if event_id not in self.events:
+            print(f"Event with ID {event_id} not found.")
+            return
+
+        event = self.events[event_id]
+        available_tickets = event['capacity'] - event['booked']
+
+        if num_tickets <= 0:
+            print("Number of tickets must be greater than zero.")
+            return
+
+        if num_tickets > available_tickets:
+            print(f"Not enough tickets available for '{event['name']}'. Available: {available_tickets}")
+            return
+
+        event['booked'] += num_tickets
+        self.bookings.append({
+            'event_id': event_id,
+            'user_name': user_name,
+            'num_tickets': num_tickets
+        })
+        print(f"Successfully booked {num_tickets} tickets for '{event['name']}' by {user_name}.")
+
+    def view_bookings(self, user_name=None):
+        if not self.bookings:
+            print("No bookings made yet.")
+            return
+
+        print("\n--- Your Bookings ---")
+        found_bookings = False
+        for booking in self.bookings:
+            if user_name is None or booking['user_name'] == user_name:
+                event = self.events[booking['event_id']]
+                print(f"User: {booking['user_name']}, Event: {event['name']} (ID: {booking['event_id']}), "
+                      f"Tickets: {booking['num_tickets']}")
+                found_bookings = True
+        if not found_bookings and user_name:
+            print(f"No bookings found for user '{user_name}'.")
+        print("---------------------")
+
+def main():
+    system = EventBookingSystem()
+
+    while True:
+        print("\n--- Event Booking System Menu ---")
+        print("1. Create Event")
+        print("2. View Events")
+        print("3. Book Tickets")
+        print("4. View My Bookings")
+        print("5. Exit")
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            name = input("Enter event name: ")
+            date = input("Enter event date (e.g., YYYY-MM-DD): ")
+            capacity = int(input("Enter event capacity: "))
+            system.create_event(name, date, capacity)
+        elif choice == '2':
+            system.view_events()
+        elif choice == '3':
+            event_id = int(input("Enter event ID to book: "))
+            user_name = input("Enter your name: ")
+            num_tickets = int(input("Enter number of tickets to book: "))
+            system.book_tickets(event_id, user_name, num_tickets)
+        elif choice == '4':
+            user_name = input("Enter your name to view bookings: ")
+            system.view_bookings(user_name)
+        elif choice == '5':
+            print("Exiting Event Booking System. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
