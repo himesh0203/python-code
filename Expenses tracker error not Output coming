@@ -1,0 +1,105 @@
+import csv
+from datetime import datetime
+
+EXPENSE_FILE = 'expenses.csv'
+HEADERS = ['Date', 'Category', 'Amount', 'Description']
+
+def initialize_expense_file():
+    """Creates the expense CSV file with headers if it doesn't exist."""
+    try:
+        with open(EXPENSE_FILE, 'x', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(HEADERS)
+    except FileExistsError:
+        pass # File already exists
+
+def add_expense(date, category, amount, description):
+    """Adds a new expense to the CSV file."""
+    try:
+        with open(EXPENSE_FILE, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([date, category, amount, description])
+        print("Expense added successfully!")
+    except Exception as e:
+        print(f"Error adding expense: {e}")
+
+def view_expenses():
+    """Displays all recorded expenses."""
+    try:
+        with open(EXPENSE_FILE, 'r', newline='') as f:
+            reader = csv.DictReader(f)
+            expenses = list(reader)
+            if not expenses:
+                print("No expenses recorded yet.")
+                return
+
+            print("\n--- All Expenses ---")
+            for expense in expenses:
+                print(f"Date: {expense['Date']}, Category: {expense['Category']}, "
+                      f"Amount: ${float(expense['Amount']):.2f}, Description: {expense['Description']}")
+            print("--------------------")
+    except FileNotFoundError:
+        print("No expenses file found. Please add an expense first.")
+    except Exception as e:
+        print(f"Error viewing expenses: {e}")
+
+def summarize_expenses_by_category():
+    """Summarizes total spending by category."""
+    try:
+        with open(EXPENSE_FILE, 'r', newline='') as f:
+            reader = csv.DictReader(f)
+            expenses = list(reader)
+            if not expenses:
+                print("No expenses recorded yet for summarization.")
+                return
+
+            category_summary = {}
+            for expense in expenses:
+                category = expense['Category']
+                amount = float(expense['Amount'])
+                category_summary[category] = category_summary.get(category, 0) + amount
+
+            print("\n--- Spending Summary by Category ---")
+            for category, total_amount in category_summary.items():
+                print(f"{category}: ${total_amount:.2f}")
+            print("------------------------------------")
+    except FileNotFoundError:
+        print("No expenses file found. Please add an expense first.")
+    except Exception as e:
+        print(f"Error summarizing expenses: {e}")
+
+def main():
+    initialize_expense_file()
+
+    while True:
+        print("\nExpense Tracker Menu:")
+        print("1. Add Expense")
+        print("2. View Expenses")
+        print("3. Summarize Expenses by Category")
+        print("4. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            date = input("Enter date (YYYY-MM-DD): ")
+            category = input("Enter category (e.g., Food, Transport, Bills): ")
+            while True:
+                try:
+                    amount = float(input("Enter amount: "))
+                    break
+                except ValueError:
+                    print("Invalid amount. Please enter a number.")
+            description = input("Enter description (optional): ")
+            add_expense(date, category, amount, description)
+        elif choice == '2':
+            view_expenses()
+        elif choice == '3':
+            summarize_expenses_by_category()
+        elif choice == '4':
+            print("Exiting Expense Tracker. Goodbye!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
