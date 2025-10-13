@@ -1,0 +1,47 @@
+import datetime
+
+def mark_attendance(student_name, attendance_record):
+    """Marks attendance for a given student."""
+    if student_name not in attendance_record:
+        attendance_record[student_name] = []
+    
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    attendance_record[student_name].append(current_time)
+    print(f"Attendance marked for {student_name} at {current_time}")
+
+def view_attendance(attendance_record):
+    """Displays the attendance record for all students."""
+    if not attendance_record:
+        print("No attendance recorded yet.")
+        return
+
+    print("\n--- Attendance Record ---")
+    for student, times in attendance_record.items():
+        print(f"Student: {student}")
+        for time in times:
+            print(f"  - {time}")
+    print("-------------------------\n")
+
+def main():
+    attendance_data = {}  # Dictionary to store attendance: {student_name: [timestamp1, timestamp2, ...]}
+
+    while True:
+        print("1. Mark Attendance")
+        print("2. View Attendance")
+        print("3. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            name = input("Enter student name: ")
+            mark_attendance(name, attendance_data)
+        elif choice == '2':
+            view_attendance(attendance_data)
+        elif choice == '3':
+            print("Exiting attendance system.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
