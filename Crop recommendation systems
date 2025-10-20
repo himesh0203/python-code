@@ -1,0 +1,97 @@
+pip install scikit-learn pandas
+
+
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import LabelEncoder
+import random
+
+def create_dummy_data(num_samples=1000):
+    """Generates synthetic data for crop recommendation."""
+    crops = ['Rice', 'Wheat', 'Sugarcane', 'Cotton', 'Maize', 'Bajra']
+    soil_types = ['Loamy', 'Clayey', 'Sandy']
+
+    data = {
+        'Temperature': [random.uniform(20, 40) for _ in range(num_samples)],
+        'Rainfall': [random.uniform(500, 2000) for _ in range(num_samples)],
+        'Soil_Type': [random.choice(soil_types) for _ in range(num_samples)],
+        'Recommended_Crop': [random.choice(crops) for _ in range(num_samples)]
+    }
+    return pd.DataFrame(data)
+
+def train_crop_recommender(data):
+    """Trains a machine learning model on the crop data."""
+    le_soil = LabelEncoder()
+    le_crop = LabelEncoder()
+
+    data['Soil_Type_Encoded'] = le_soil.fit_transform(data['Soil_Type'])
+    data['Recommended_Crop_Encoded'] = le_crop.fit_transform(data['Recommended_Crop'])
+
+    features = data[['Temperature', 'Rainfall', 'Soil_Type_Encoded']]
+    labels = data['Recommended_Crop_Encoded']
+
+    # Splitting the dataset for training and testing
+    X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.2, random_state=42)
+    
+    # Initialize and train the model
+    model = DecisionTreeClassifier()
+    model.fit(X_train, y_train)
+
+    return model, le_soil, le_crop
+
+def recommend_crop(model, le_soil, le_crop, temp, rainfall, soil_type):
+    """Makes a crop recommendation based on the trained model."""
+    try:
+        # Encode the input soil type
+        soil_type_encoded = le_soil.transform([soil_type])[0]
+
+        # Create a DataFrame for the new data point
+        input_data = pd.DataFrame([[temp, rainfall, soil_type_encoded]],
+                                  columns=['Temperature', 'Rainfall', 'Soil_Type_Encoded'])
+        
+        # Predict the crop
+        predicted_crop_encoded = model.predict(input_data)
+        
+        # Decode the prediction to get the crop name
+        recommended_crop = le_crop.inverse_transform(predicted_crop_encoded)
+        
+        return recommended_crop[0]
+    except ValueError:
+        return "Unknown soil type. Please choose from Loamy, Clayey, or Sandy."
+
+if __name__ == "__main__":
+    # Create and prepare the dummy dataset
+    dummy_data = create_dummy_data()
+    
+    # Train the machine learning model
+    crop_model, soil_encoder, crop_encoder = train_crop_recommender(dummy_data)
+    print("Crop recommendation model trained successfully.\n")
+    
+    # --- Example usage ---
+    
+    # Scenario 1: User provides typical data
+    temp_input = 30.5
+    rainfall_input = 1200
+    soil_input = 'Loamy'
+    print(f"Input Data: Temperature={temp_input}°C, Rainfall={rainfall_input}mm, Soil={soil_input}")
+    recommendation = recommend_crop(crop_model, soil_encoder, crop_encoder, temp_input, rainfall_input, soil_input)
+    print(f"Recommendation: For these conditions, the best crop is **{recommendation}**.\n")
+
+    # Scenario 2: User provides different data
+    temp_input_2 = 25.0
+    rainfall_input_2 = 700
+    soil_input_2 = 'Clayey'
+    print(f"Input Data: Temperature={temp_input_2}°C, Rainfall={rainfall_input_2}mm, Soil={soil_input_2}")
+    recommendation_2 = recommend_crop(crop_model, soil_encoder, crop_encoder, temp_input_2, rainfall_input_2, soil_input_2)
+    print(f"Recommendation: For these conditions, the best crop is **{recommendation_2}**.\n")
+
+    # Scenario 3: User provides an unknown soil type
+    temp_input_3 = 28.0
+    rainfall_input_3 = 900
+    soil_input_3 = 'Rocky'
+    print(f"Input Data: Temperature={temp_input_3}°C, Rainfall={rainfall_input_3}mm, Soil={soil_input_3}")
+    recommendation_3 = recommend_crop(crop_model, soil_encoder, crop_encoder, temp_input_3, rainfall_input_3, soil_input_3)
+    print(f"Recommendation: {recommendation_3}")
