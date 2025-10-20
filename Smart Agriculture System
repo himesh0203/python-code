@@ -1,0 +1,157 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+import random
+
+# Simulate data for a machine learning model
+data = {
+    'N': [random.uniform(50, 100) for _ in range(100)],
+    'P': [random.uniform(30, 70) for _ in range(100)],
+    'K': [random.uniform(20, 50) for _ in range(100)],
+    'temperature': [random.uniform(25, 40) for _ in range(100)],
+    'humidity': [random.uniform(60, 95) for _ in range(100)],
+    'rainfall': [random.uniform(50, 200) for _ in range(100)],
+    'crop': random.choices(['Rice', 'Wheat', 'Sugarcane', 'Cotton', 'Maize'], k=100)
+}
+df = pd.DataFrame(data)
+
+# Train a machine learning model
+X = df[['N', 'P', 'K', 'temperature', 'humidity', 'rainfall']]
+y = df['crop']
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X, y)
+
+# Function for making a new crop recommendation
+def get_crop_recommendation(N, P, K, temp, humidity, rainfall):
+    """Recommends a crop based on environmental data."""
+    input_data = pd.DataFrame([[N, P, K, temp, humidity, rainfall]],
+                              columns=['N', 'P', 'K', 'temperature', 'humidity', 'rainfall'])
+    prediction = model.predict(input_data)[0]
+    return prediction
+
+# Example usage
+print("--- Smart Agriculture System for 2027 ---")
+print("Simulating real-time sensor data for a farm...\n")
+n_level, p_level, k_level = 85, 55, 40
+current_temp, current_humidity, last_rainfall = 32, 75, 120
+recommended_crop = get_crop_recommendation(n_level, p_level, k_level, current_temp, current_humidity, last_rainfall)
+
+print(f"Based on conditions (N:{n_level}, P:{p_level}, K:{k_level}, Temp:{current_temp}°C, Humidity:{current_humidity}%, Rainfall:{last_rainfall}mm):")
+print(f"The recommended crop is: {recommended_crop}")
+
+
+
+
+
+
+
+
+
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+import random
+from datetime import datetime, timedelta
+
+# Simulate smart grid data
+def simulate_grid_data(days=365):
+    data = {
+        'date': [datetime.now() - timedelta(days=i) for i in range(days, 0, -1)],
+        'solar_kwh': [random.uniform(100, 500) for _ in range(days)],
+        'wind_kwh': [random.uniform(50, 300) for _ in range(days)],
+        'consumption_kwh': [random.uniform(300, 600) + random.randint(0, 100) for _ in range(days)],
+    }
+    df = pd.DataFrame(data)
+    df['day_of_week'] = df['date'].dt.dayofweek
+    return df
+
+df = simulate_grid_data()
+
+# Train a consumption prediction model
+X = df[['solar_kwh', 'wind_kwh', 'day_of_week']]
+y = df['consumption_kwh']
+model = LinearRegression()
+model.fit(X, y)
+
+# Function to predict next-day consumption
+def predict_next_day_consumption(solar, wind):
+    tomorrow_day_of_week = (datetime.now() + timedelta(days=1)).weekday()
+    input_data = pd.DataFrame([[solar, wind, tomorrow_day_of_week]],
+                              columns=['solar_kwh', 'wind_kwh', 'day_of_week'])
+    return model.predict(input_data)[0]
+
+# Example usage
+print("--- Smart Grid Management System for 2027 ---")
+today_solar, today_wind, today_consumption = random.uniform(100, 500), random.uniform(50, 300), random.uniform(300, 600)
+predicted_tomorrow_solar, predicted_tomorrow_wind = today_solar * 1.1, today_wind * 0.9
+predicted_consumption = predict_next_day_consumption(predicted_tomorrow_solar, predicted_tomorrow_wind)
+
+print(f"Today's production: Solar={today_solar:.2f} kWh, Wind={today_wind:.2f} kWh, Consumption: {today_consumption:.2f} kWh")
+print(f"Predicted tomorrow's consumption: {predicted_consumption:.2f} kWh")
+
+if (predicted_tomorrow_solar + predicted_tomorrow_wind) > predicted_consumption:
+    surplus = (predicted_tomorrow_solar + predicted_tomorrow_wind) - predicted_consumption
+    print(f"\nTomorrow's energy forecast projects a surplus of {surplus:.2f} kWh.")
+    print("Recommendation: Prioritize feeding excess energy into grid storage.")
+else:
+    deficit = predicted_consumption - (predicted_tomorrow_solar + predicted_tomorrow_wind)
+    print(f"\nTomorrow's energy forecast projects a deficit of {deficit:.2f} kWh.")
+    print("Recommendation: Prepare to draw from grid storage or implement demand-side management.")
+
+
+
+
+
+
+
+
+
+
+
+
+import pandas as pd
+from scipy.stats import chi2_contingency
+import random
+
+# Simulate biased data for AI model decisions
+data = {
+    'applicant_id': range(200),
+    'demographic_group': random.choices(['Group A', 'Group B', 'Group C'], k=200),
+    'credit_score': [random.randint(500, 850) for _ in range(200)],
+    'loan_approved': []
+}
+
+for group, score in zip(data['demographic_group'], data['credit_score']):
+    if group == 'Group B' and score > 650:
+        data['loan_approved'].append(1 if random.random() > 0.4 else 0)
+    elif score > 600:
+        data['loan_approved'].append(1 if random.random() > 0.2 else 0)
+    else:
+        data['loan_approved'].append(0)
+
+df = pd.DataFrame(data)
+
+# Function to check for demographic bias
+def check_demographic_bias(dataframe, demographic_col, outcome_col):
+    """Checks for bias in an AI's decision based on a demographic column."""
+    print(f"--- Ethical AI Bias Detector for 2027 ---\n")
+
+    acceptance_by_group = dataframe.groupby(demographic_col)[outcome_col].mean().reset_index()
+    acceptance_by_group.rename(columns={outcome_col: 'acceptance_rate'}, inplace=True)
+    print("Acceptance Rates by Demographic Group:")
+    print(acceptance_by_group.to_string(index=False))
+
+    contingency_table = pd.crosstab(dataframe[demographic_col], dataframe[outcome_col])
+    chi2, p, _, _ = chi2_contingency(contingency_table)
+
+    alpha = 0.05
+    if p < alpha:
+        print(f"\nAlert: Potential bias detected! (p-value: {p:.4f})")
+        print(f"The AI's decision is not independent of the '{demographic_col}' column.")
+        print("Recommendation: Conduct a thorough audit of the AI model.")
+    else:
+        print(f"\nNo significant demographic bias detected. (p-value: {p:.4f})")
+        print("Recommendation: Continue to monitor performance and fairness metrics.")
+
+# Example usage
+check_demographic_bias(df, 'demographic_group', 'loan_approved')
