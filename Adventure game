@@ -1,0 +1,71 @@
+def start_game():
+    """Initializes the game and presents the first choice."""
+    print("Welcome to the Whispering Woods Adventure!")
+    print("You find yourself at the edge of a dense forest. A path leads deeper into the trees.")
+    print("Do you 'enter' the forest or 'turn back'?")
+    choice = input("> ").lower()
+
+    if choice == "enter":
+        forest_path()
+    elif choice == "turn back":
+        print("You decide to turn back, leaving the mysteries of the Whispering Woods behind.")
+        print("Game Over.")
+    else:
+        print("Invalid choice. Please try again.")
+        start_game()
+
+def forest_path():
+    """Describes the forest path and offers new choices."""
+    print("\nYou venture into the forest. The air grows cooler and the trees loom overhead.")
+    print("You see a faint light in the distance to your 'left' and a winding stream to your 'right'.")
+    print("Which way do you go?")
+    choice = input("> ").lower()
+
+    if choice == "left":
+        glowing_clearing()
+    elif choice == "right":
+        stream_encounter()
+    else:
+        print("Invalid choice. Please try again.")
+        forest_path()
+
+def glowing_clearing():
+    """Describes a glowing clearing and a new challenge."""
+    print("\nYou follow the light and arrive at a small clearing bathed in an ethereal glow.")
+    print("In the center, a shimmering pedestal holds a glowing orb.")
+    print("Do you 'touch' the orb or 'leave' the clearing?")
+    choice = input("> ").lower()
+
+    if choice == "touch":
+        print("As you touch the orb, a burst of energy courses through you!")
+        print("You feel invigorated and powerful. You have found a magical artifact!")
+        print("Congratulations! You win!")
+    elif choice == "leave":
+        print("You decide not to disturb the mysterious orb and cautiously retreat.")
+        print("You wander aimlessly and eventually find your way out of the forest.")
+        print("Game Over.")
+    else:
+        print("Invalid choice. Please try again.")
+        glowing_clearing()
+
+def stream_encounter():
+    """Describes an encounter at the stream."""
+    print("\nYou follow the winding stream. The sound of rushing water fills the air.")
+    print("Suddenly, you spot a small, sparkling object caught between some rocks.")
+    print("Do you 'investigate' the object or 'continue' along the stream?")
+    choice = input("> ").lower()
+
+    if choice == "investigate":
+        print("You carefully retrieve the object – it's a beautiful, polished gemstone!")
+        print("You feel a sense of accomplishment. You have found a hidden treasure!")
+        print("Congratulations! You win!")
+    elif choice == "continue":
+        print("You decide to leave the object undisturbed and continue your journey.")
+        print("The stream leads you to a familiar path, and you eventually exit the forest.")
+        print("Game Over.")
+    else:
+        print("Invalid choice. Please try again.")
+        stream_encounter()
+
+# Start the game
+start_game()
