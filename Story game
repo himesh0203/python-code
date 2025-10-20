@@ -1,0 +1,41 @@
+def start_game():
+    print("Welcome to the Enchanted Forest!")
+    print("You find yourself at a crossroads. Do you go 'left' or 'right'?")
+    choice = input("> ").lower()
+
+    if choice == "left":
+        forest_path()
+    elif choice == "right":
+        river_bank()
+    else:
+        print("Invalid choice. Please choose 'left' or 'right'.")
+        start_game()
+
+def forest_path():
+    print("\nYou venture down the left path and encounter a wise old owl.")
+    print("The owl asks you a riddle: 'What has an eye but cannot see?'")
+    answer = input("Your answer: ").lower()
+
+    if answer == "needle":
+        print("The owl hoots approvingly and reveals a hidden treasure chest!")
+        print("You win!")
+    else:
+        print("The owl shakes its head. 'Incorrect!' It flies away, leaving you lost.")
+        print("Game Over.")
+
+def river_bank():
+    print("\nYou follow the right path and arrive at a shimmering river.")
+    print("A friendly mermaid offers to guide you across if you can answer her question.")
+    print("She asks: 'What is always in front of you but can’t be seen?'")
+    answer = input("Your answer: ").lower()
+
+    if answer == "the future":
+        print("The mermaid smiles and guides you safely to the other side.")
+        print("You discover a magical garden!")
+        print("You win!")
+    else:
+        print("The mermaid frowns. 'That's not it!' She disappears into the depths.")
+        print("You are stranded. Game Over.")
+
+# Start the game
+start_game()
