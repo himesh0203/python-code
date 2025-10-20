@@ -1,0 +1,318 @@
+import random
+import math
+import time
+from collections import deque
+
+try:
+    import turtle
+    GUI_ENABLED = True
+except ImportError:
+    GUI_ENABLED = False
+
+# --- Core Genetic Algorithm and Simulation Logic ---
+
+class Gene:
+    """Represents a single trait in a creature's genetic code."""
+    def __init__(self, name, value_range, mutation_rate=0.1):
+        self.name = name
+        self.value_range = value_range
+        self.mutation_rate = mutation_rate
+        self.value = random.uniform(value_range[0], value_range[1])
+
+    def mutate(self):
+        """Applies a random mutation to the gene's value."""
+        if random.random() < self.mutation_rate:
+            change = random.uniform(-0.2, 0.2) * (self.value_range[1] - self.value_range[0])
+            self.value = max(self.value_range[0], min(self.value_range[1], self.value + change))
+            return True
+        return False
+
+class GeneticCode:
+    """Manages a creature's full set of genes."""
+    def __init__(self):
+        self.genes = {
+            'speed': Gene('speed', (1, 10)),
+            'vision': Gene('vision', (10, 50)),
+            'reproduction_threshold': Gene('reproduction_threshold', (50, 150)),
+            'lifespan_factor': Gene('lifespan_factor', (0.5, 2.0)),
+        }
+
+    def inherit(self, parent_code):
+        """Copies genes from a parent with a chance for mutation."""
+        for name, gene in self.genes.items():
+            gene.value = parent_code.genes[name].value
+            gene.mutate()
+
+    def __getitem__(self, key):
+        return self.genes[key].value
+
+class Creature:
+    """Base class for all organisms in the ecosystem."""
+    def __init__(self, x, y, genetic_code):
+        self.x = x
+        self.y = y
+        self.genetic_code = genetic_code
+        self.energy = 50
+        self.age = 0
+        self.is_alive = True
+        self.type = 'creature'
+
+    def move(self, dx, dy):
+        """Updates creature's position."""
+        self.x += dx * self.genetic_code['speed']
+        self.y += dy * self.genetic_code['speed']
+
+    def reproduce(self):
+        """Creates a new offspring with inherited genes."""
+        if self.energy >= self.genetic_code['reproduction_threshold']:
+            new_code = GeneticCode()
+            new_code.inherit(self.genetic_code)
+            self.energy -= self.genetic_code['reproduction_threshold'] / 2
+            return self.__class__(self.x, self.y, new_code)
+        return None
+
+    def update(self, ecosystem):
+        """Performs a single simulation step for the creature."""
+        self.age += 1
+        self.energy -= 1
+        if self.energy <= 0 or self.age > self.genetic_code['lifespan_factor'] * 100:
+            self.is_alive = False
+
+class Prey(Creature):
+    """Organism that feeds on algae and tries to avoid predators."""
+    def __init__(self, x, y, genetic_code):
+        super().__init__(x, y, genetic_code)
+        self.type = 'prey'
+
+    def update(self, ecosystem):
+        super().update(ecosystem)
+        if not self.is_alive: return
+
+        # Find food and predators in range
+        algae_in_vision = []
+        predators_in_vision = []
+        for entity in ecosystem.entities:
+            if entity is self: continue
+            dist = math.sqrt((self.x - entity.x)**2 + (self.y - entity.y)**2)
+            if dist < self.genetic_code['vision']:
+                if entity.type == 'algae':
+                    algae_in_vision.append(entity)
+                elif entity.type == 'predator':
+                    predators_in_vision.append(entity)
+
+        # Behavioral logic: evade predators first, then seek food
+        dx, dy = 0, 0
+        if predators_in_vision:
+            # Evade the closest predator
+            closest_predator = min(predators_in_vision, key=lambda p: math.sqrt((self.x - p.x)**2 + (self.y - p.y)**2))
+            dx = self.x - closest_predator.x
+            dy = self.y - closest_predator.y
+        elif algae_in_vision:
+            # Seek the closest algae
+            closest_algae = min(algae_in_vision, key=lambda a: math.sqrt((self.x - a.x)**2 + (self.y - a.y)**2))
+            dx = closest_algae.x - self.x
+            dy = closest_algae.y - self.y
+        else:
+            # Wander aimlessly
+            dx = random.uniform(-1, 1)
+            dy = random.uniform(-1, 1)
+
+        # Normalize movement vector
+        if dx != 0 or dy != 0:
+            dist = math.sqrt(dx**2 + dy**2)
+            self.move(dx / dist, dy / dist)
+
+        # Eat algae if close enough
+        for algae in algae_in_vision:
+            if math.sqrt((self.x - algae.x)**2 + (self.y - algae.y)**2) < 5:
+                self.energy += algae.consume()
+
+class Predator(Creature):
+    """Organism that hunts prey."""
+    def __init__(self, x, y, genetic_code):
+        super().__init__(x, y, genetic_code)
+        self.type = 'predator'
+
+    def update(self, ecosystem):
+        super().update(ecosystem)
+        if not self.is_alive: return
+
+        # Find prey in vision range
+        prey_in_vision = []
+        for entity in ecosystem.entities:
+            if entity is self or entity.type != 'prey' or not entity.is_alive: continue
+            dist = math.sqrt((self.x - entity.x)**2 + (self.y - entity.y)**2)
+            if dist < self.genetic_code['vision']:
+                prey_in_vision.append(entity)
+
+        # Behavioral logic: hunt the closest prey
+        dx, dy = 0, 0
+        if prey_in_vision:
+            closest_prey = min(prey_in_vision, key=lambda p: math.sqrt((self.x - p.x)**2 + (self.y - p.y)**2))
+            dx = closest_prey.x - self.x
+            dy = closest_prey.y - self.y
+
+            # Eat prey if close enough
+            if math.sqrt((self.x - closest_prey.x)**2 + (self.y - closest_prey.y)**2) < 5:
+                self.energy += 50  # Get energy from eating prey
+                closest_prey.is_alive = False
+        else:
+            # Wander aimlessly
+            dx = random.uniform(-1, 1)
+            dy = random.uniform(-1, 1)
+
+        # Normalize movement vector
+        if dx != 0 or dy != 0:
+            dist = math.sqrt(dx**2 + dy**2)
+            self.move(dx / dist, dy / dist)
+
+class BioluminescentAlgae:
+    """A static, food-providing organism that glows."""
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.energy_value = 10
+        self.is_available = True
+        self.type = 'algae'
+
+    def consume(self):
+        """Returns energy and becomes temporarily unavailable."""
+        if self.is_available:
+            self.is_available = False
+            return self.energy_value
+        return 0
+
+# --- Ecosystem and Simulation Management ---
+
+class Ecosystem:
+    """Manages all creatures and algae in the simulation."""
+    def __init__(self, width, height, num_prey, num_predators, num_algae):
+        self.width = width
+        self.height = height
+        self.entities = []
+        for _ in range(num_prey):
+            self.entities.append(Prey(random.randint(0, width), random.randint(0, height), GeneticCode()))
+        for _ in range(num_predators):
+            self.entities.append(Predator(random.randint(0, width), random.randint(0, height), GeneticCode()))
+        for _ in range(num_algae):
+            self.entities.append(BioluminescentAlgae(random.randint(0, width), random.randint(0, height)))
+
+    def update(self):
+        """Runs one full cycle of simulation logic."""
+        new_entities = []
+        for entity in self.entities:
+            if entity.is_alive:
+                entity.update(self)
+                new_entities.append(entity)
+                # Check for reproduction
+                if isinstance(entity, (Prey, Predator)):
+                    offspring = entity.reproduce()
+                    if offspring:
+                        new_entities.append(offspring)
+            else:
+                print(f"A {entity.type} has died.")
+        self.entities = new_entities
+
+        # Respawn algae
+        if len([e for e in self.entities if e.type == 'algae']) < 50:
+            self.entities.append(BioluminescentAlgae(random.randint(0, self.width), random.randint(0, self.height)))
+
+# --- GUI Visualization with Turtle ---
+
+if GUI_ENABLED:
+    def setup_turtle_screen(width, height):
+        """Configures the turtle window."""
+        screen = turtle.Screen()
+        screen.setup(width, height)
+        screen.setworldcoordinates(0, 0, width, height)
+        screen.bgcolor("black")
+        turtle.tracer(0, 0)
+        return screen
+
+    def create_turtle_pen(color, shape, size=0.5):
+        """Creates a turtle pen for drawing creatures."""
+        pen = turtle.Turtle()
+        pen.speed(0)
+        pen.penup()
+        pen.shape(shape)
+        pen.color(color)
+        pen.shapesize(size)
+        return pen
+
+    def draw_bioluminescent_glow(x, y, radius, color):
+        """Creates a visual effect for glowing algae."""
+        for r in range(radius, 0, -2):
+            pen = turtle.Turtle()
+            pen.speed(0)
+            pen.penup()
+            pen.color(color)
+            pen.goto(x, y)
+            pen.pendown()
+            pen.dot(r * 2)
+            pen.hideturtle()
+            time.sleep(0.01)  # Small delay for effect
+            pen.clear() # Clear after a short glow
+
+    def run_gui_simulation(ecosystem, screen):
+        """Main loop for the graphical simulation."""
+        prey_pen = create_turtle_pen("green", "circle")
+        predator_pen = create_turtle_pen("red", "triangle")
+        algae_pen = create_turtle_pen("cyan", "square", size=0.2)
+
+        while True:
+            ecosystem.update()
+            prey_pen.clear()
+            predator_pen.clear()
+            algae_pen.clear()
+
+            for entity in ecosystem.entities:
+                if entity.is_alive:
+                    if entity.type == 'prey':
+                        prey_pen.goto(entity.x, entity.y)
+                        prey_pen.stamp()
+                    elif entity.type == 'predator':
+                        predator_pen.goto(entity.x, entity.y)
+                        predator_pen.stamp()
+                    elif entity.type == 'algae' and entity.is_available:
+                        algae_pen.goto(entity.x, entity.y)
+                        algae_pen.stamp()
+                        # draw_bioluminescent_glow(entity.x, entity.y, 5, "cyan") # Can be too slow for online compilers
+
+            screen.update()
+            time.sleep(0.1)
+            if len(ecosystem.entities) == 0:
+                print("Ecosystem collapsed. Simulation over.")
+                break
+
+# --- Main simulation loop ---
+
+def run_headless_simulation(ecosystem, generations=100):
+    """Runs the simulation without a graphical interface."""
+    for i in range(generations):
+        print(f"--- Generation {i+1} ---")
+        ecosystem.update()
+        num_prey = len([e for e in ecosystem.entities if e.type == 'prey' and e.is_alive])
+        num_predators = len([e for e in ecosystem.entities if e.type == 'predator' and e.is_alive])
+        print(f"Current population: Prey={num_prey}, Predators={num_predators}")
+        if num_prey == 0 or num_predators == 0:
+            print("Simulation ended due to population collapse.")
+            break
+        time.sleep(0.5) # Pause to make output readable
+
+if __name__ == "__main__":
+    ECOSYSTEM_WIDTH = 800
+    ECOSYSTEM_HEIGHT = 600
+    INITIAL_PREY = 50
+    INITIAL_PREDATORS = 5
+    INITIAL_ALGAE = 100
+
+    eco = Ecosystem(ECOSYSTEM_WIDTH, ECOSYSTEM_HEIGHT, INITIAL_PREY, INITIAL_PREDATORS, INITIAL_ALGAE)
+
+    if GUI_ENABLED:
+        screen = setup_turtle_screen(ECOSYSTEM_WIDTH, ECOSYSTEM_HEIGHT)
+        run_gui_simulation(eco, screen)
+        screen.exitonclick()
+    else:
+        print("Turtle GUI not available. Running in headless (text-only) mode.")
+        run_headless_simulation(eco, generations=200)
+
