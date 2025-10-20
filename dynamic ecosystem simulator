@@ -1,0 +1,162 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+from collections import deque
+import time
+
+# --- Configuration ---
+WIDTH, HEIGHT = 100, 100
+PREY_START_COUNT = 50
+PREDATOR_START_COUNT = 10
+SIMULATION_STEPS = 500
+VISUALIZATION_DELAY = 0.01  # Time in seconds between updates
+
+# --- Ecosystem Entities ---
+class Entity:
+    def __init__(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.health = 100
+
+    def move(self):
+        # Random walk movement
+        dx = random.randint(-1, 1)
+        dy = random.randint(-1, 1)
+        self.x = (self.x + dx) % WIDTH
+        self.y = (self.y + dy) % HEIGHT
+        self.health -= 1  # Each move costs health
+
+class Prey(Entity):
+    def __init__(self, x, y):
+        super().__init__(x, y, 'blue')
+        self.reproduce_threshold = 80
+    
+    def check_reproduce(self):
+        if self.health > self.reproduce_threshold:
+            self.health -= 50
+            return Prey(self.x, self.y)
+        return None
+
+class Predator(Entity):
+    def __init__(self, x, y):
+        super().__init__(x, y, 'red')
+        self.hunt_range = 5
+
+    def hunt(self, prey_list):
+        for prey in prey_list:
+            if self.distance(prey) < self.hunt_range:
+                self.eat(prey)
+                return True, prey  # Return True and the prey eaten
+        return False, None
+
+    def distance(self, other):
+        # Euclidean distance
+        return np.sqrt((self.x - other.x)**2 + (self.y - other.y)**2)
+        
+    def eat(self, prey):
+        self.health += 50
+        self.health = min(self.health, 100) # Cap health at 100
+
+# --- Simulation Logic ---
+class Ecosystem:
+    def __init__(self):
+        self.prey = [Prey(random.randint(0, WIDTH-1), random.randint(0, HEIGHT-1)) 
+                     for _ in range(PREY_START_COUNT)]
+        self.predators = [Predator(random.randint(0, WIDTH-1), random.randint(0, HEIGHT-1)) 
+                          for _ in range(PREDATOR_START_COUNT)]
+        self.prey_population_history = deque([PREY_START_COUNT], maxlen=SIMULATION_STEPS)
+        self.predator_population_history = deque([PREDATOR_START_COUNT], maxlen=SIMULATION_STEPS)
+        
+    def simulate_step(self):
+        # Predator actions
+        for predator in list(self.predators):
+            predator.move()
+            if predator.health <= 0:
+                self.predators.remove(predator)
+                continue
+            
+            # Check for prey in hunting range
+            if self.prey:
+                eaten, prey_eaten = predator.hunt(self.prey)
+                if eaten:
+                    self.prey.remove(prey_eaten)
+
+        # Prey actions
+        new_prey = []
+        for prey in list(self.prey):
+            prey.move()
+            if prey.health <= 0:
+                self.prey.remove(prey)
+                continue
+            
+            # Check for reproduction
+            offspring = prey.check_reproduce()
+            if offspring:
+                new_prey.append(offspring)
+        self.prey.extend(new_prey)
+
+        # Record population history
+        self.prey_population_history.append(len(self.prey))
+        self.predator_population_history.append(len(self.predators))
+
+    def get_scatter_data(self):
+        prey_x = [p.x for p in self.prey]
+        prey_y = [p.y for p in self.prey]
+        predator_x = [p.x for p in self.predators]
+        predator_y = [p.y for p in self.predators]
+        return prey_x, prey_y, predator_x, predator_y
+
+    def get_population_data(self):
+        return (list(self.prey_population_history), 
+                list(self.predator_population_history))
+
+# --- Visualization ---
+def run_simulation():
+    eco = Ecosystem()
+
+    # Setup figure for visualization
+    plt.ion() # Turn on interactive mode
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Ax1: Scatter plot for entities
+    ax1.set_xlim(0, WIDTH)
+    ax1.set_ylim(0, HEIGHT)
+    ax1.set_title("Ecosystem Simulation")
+    prey_scatter, = ax1.plot([], [], 'o', color='blue', label='Prey')
+    predator_scatter, = ax1.plot([], [], 'o', color='red', label='Predator')
+    ax1.legend()
+
+    # Ax2: Line plot for population history
+    ax2.set_xlim(0, SIMULATION_STEPS)
+    ax2.set_ylim(0, max(PREY_START_COUNT, PREDATOR_START_COUNT) * 2)
+    ax2.set_title("Population Dynamics")
+    prey_line, = ax2.plot([], [], color='blue', label='Prey')
+    predator_line, = ax2.plot([], [], color='red', label='Predator')
+    ax2.legend()
+
+    # Main simulation loop
+    for step in range(SIMULATION_STEPS):
+        eco.simulate_step()
+
+        # Update scatter plot
+        prey_x, prey_y, predator_x, predator_y = eco.get_scatter_data()
+        prey_scatter.set_data(prey_x, prey_y)
+        predator_scatter.set_data(predator_x, predator_y)
+
+        # Update population history plot
+        prey_hist, predator_hist = eco.get_population_data()
+        prey_line.set_data(range(len(prey_hist)), prey_hist)
+        predator_line.set_data(range(len(predator_hist)), predator_hist)
+
+        # Redraw plots
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+        time.sleep(VISUALIZATION_DELAY)
+
+    plt.ioff() # Turn off interactive mode at the end
+    plt.show()
+
+# To run the simulation
+if __name__ == "__main__":
+    run_simulation()
