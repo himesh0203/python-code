@@ -1,0 +1,59 @@
+from collections import deque
+
+def ladderLength(beginWord: str, endWord: str, wordList: list[str]) -> int:
+    """
+    Finds the length of the shortest word ladder from beginWord to endWord.
+
+    Args:
+        beginWord: The starting word.
+        endWord: The target word.
+        wordList: A list of valid words that can be used in the ladder.
+
+    Returns:
+        The length of the shortest word ladder, or 0 if no such ladder exists.
+    """
+    word_set = set(wordList)
+    if endWord not in word_set:
+        return 0
+
+    queue = deque([(beginWord, 1)])  # (word, level)
+    visited = {beginWord}
+
+    while queue:
+        current_word, level = queue.popleft()
+
+        if current_word == endWord:
+            return level
+
+        for i in range(len(current_word)):
+            original_char = current_word[i]
+            for char_code in range(ord('a'), ord('z') + 1):
+                new_char = chr(char_code)
+                if new_char == original_char:
+                    continue
+
+                next_word_list = list(current_word)
+                next_word_list[i] = new_char
+                next_word = "".join(next_word_list)
+
+                if next_word in word_set and next_word not in visited:
+                    visited.add(next_word)
+                    queue.append((next_word, level + 1))
+    
+    return 0  # No path found
+
+# Example Usage:
+beginWord1 = "hit"
+endWord1 = "cog"
+wordList1 = ["hot", "dot", "dog", "lot", "log", "cog"]
+print(f"Word ladder length for example 1: {ladderLength(beginWord1, endWord1, wordList1)}") # Output: 5
+
+beginWord2 = "a"
+endWord2 = "c"
+wordList2 = ["a", "b", "c"]
+print(f"Word ladder length for example 2: {ladderLength(beginWord2, endWord2, wordList2)}") # Output: 2
+
+beginWord3 = "hot"
+endWord3 = "dog"
+wordList3 = ["hot", "dog"]
+print(f"Word ladder length for example 3: {ladderLength(beginWord3, endWord3, wordList3)}") # Output: 0
