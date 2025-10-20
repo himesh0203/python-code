@@ -1,0 +1,47 @@
+def smart_waste_management_system():
+    """
+    Simulates a smart waste management system for waste segregation in an Indian context.
+    It identifies waste type and suggests appropriate disposal or recycling information.
+    """
+    print("Welcome to the Smart Waste Management System (India Edition)!")
+    print("Please enter the type of waste you have (e.g., 'plastic', 'food', 'paper', 'e-waste', 'glass', 'medical'):")
+
+    waste_type = input().lower().strip()
+
+    if waste_type == "plastic":
+        print("\n--- Plastic Waste ---")
+        print("Plastic waste is a major concern in India. Please rinse and dry before disposal.")
+        print("Look for designated plastic recycling bins or collection drives in your area.")
+        print("Consider reusing plastic containers or opting for reusable alternatives.")
+    elif waste_type == "food":
+        print("\n--- Organic/Food Waste ---")
+        print("Organic waste can be composted to create nutrient-rich fertilizer.")
+        print("Many Indian households and communities are adopting composting methods.")
+        print("Segregate food waste for composting or designated organic waste collection.")
+    elif waste_type == "paper":
+        print("\n--- Paper Waste ---")
+        print("Paper waste is recyclable. Ensure it's clean and dry before recycling.")
+        print("Avoid mixing with food or other contaminants.")
+        print("Look for paper recycling facilities or collection points.")
+    elif waste_type == "e-waste":
+        print("\n--- E-Waste (Electronic Waste) ---")
+        print("E-waste contains hazardous materials and requires special handling.")
+        print("Do NOT dispose of e-waste with general household waste.")
+        print("Look for authorized e-waste collection centers or manufacturer take-back programs.")
+    elif waste_type == "glass":
+        print("\n--- Glass Waste ---")
+        print("Glass is recyclable. Separate by color if possible (clear, brown, green).")
+        print("Handle with care to avoid breakage and injury.")
+        print("Utilize designated glass recycling bins.")
+    elif waste_type == "medical":
+        print("\n--- Medical Waste ---")
+        print("Medical waste (e.g., syringes, bandages) is highly hazardous and requires strict disposal protocols.")
+        print("Never mix medical waste with regular trash.")
+        print("Contact your local municipality or healthcare provider for proper medical waste disposal guidelines.")
+    else:
+        print("\n--- Unidentified Waste Type ---")
+        print("Please ensure the waste type is entered correctly or consult local waste management guidelines for proper disposal.")
+        print("In India, proper segregation at source is crucial for effective waste management.")
+
+if __name__ == "__main__":
+    smart_waste_management_system()
