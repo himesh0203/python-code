@@ -1,0 +1,29 @@
+def play_mad_libs():
+    """Plays a simple Mad Libs game."""
+
+    print("Welcome to Mad Libs! Please provide the following words:")
+
+    # Get user inputs for various word types
+    adjective1 = input("Enter an adjective: ")
+    noun1 = input("Enter a noun: ")
+    verb_past_tense = input("Enter a verb in past tense: ")
+    adverb = input("Enter an adverb: ")
+    adjective2 = input("Enter another adjective: ")
+    noun_plural = input("Enter a plural noun: ")
+    verb_ing = input("Enter a verb ending in '-ing': ")
+    animal = input("Enter an animal: ")
+
+    # Construct the Mad Libs story
+    story = f"""
+    One {adjective1} morning, a {noun1} {verb_past_tense} {adverb} through the park.
+    It was a truly {adjective2} sight! Suddenly, a group of {noun_plural}
+    came {verb_ing} by, chasing a wild {animal}. Everyone laughed and cheered,
+    making it a memorable day for all.
+    """
+
+    print("\nHere is your completed Mad Libs story:")
+    print(story)
+
+# Call the function to start the game
+if __name__ == "__main__":
+    play_mad_libs()
