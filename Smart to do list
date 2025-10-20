@@ -1,0 +1,72 @@
+import datetime
+
+class Task:
+    def __init__(self, description, priority="medium", due_date=None):
+        self.description = description
+        self.priority = priority.lower()  # low, medium, high
+        self.due_date = due_date  # datetime.date object
+        self.completed = False
+
+    def mark_complete(self):
+        self.completed = True
+
+    def __str__(self):
+        status = "Completed" if self.completed else "Pending"
+        due_info = f", Due: {self.due_date}" if self.due_date else ""
+        return f"[{status}] {self.description} (Priority: {self.priority}{due_info})"
+
+class SmartToDoList:
+    def __init__(self):
+        self.tasks = []
+
+    def add_task(self, description, priority="medium", due_date_str=None):
+        due_date = None
+        if due_date_str:
+            try:
+                due_date = datetime.datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                print("Invalid date format. Please use YYYY-MM-DD.")
+                return
+        task = Task(description, priority, due_date)
+        self.tasks.append(task)
+        print(f"Task '{description}' added.")
+
+    def view_tasks(self, sort_by="priority"):
+        if not self.tasks:
+            print("No tasks in the list.")
+            return
+
+        if sort_by == "priority":
+            sorted_tasks = sorted(self.tasks, key=lambda t: ["low", "medium", "high"].index(t.priority))
+        elif sort_by == "due_date":
+            # Sort by due date, placing tasks without due dates at the end
+            sorted_tasks = sorted(self.tasks, key=lambda t: t.due_date if t.due_date else datetime.date.max)
+        else:
+            sorted_tasks = self.tasks
+
+        print("\n--- Your Smart To-Do List ---")
+        for i, task in enumerate(sorted_tasks):
+            print(f"{i+1}. {task}")
+        print("-----------------------------\n")
+
+    def complete_task(self, task_index):
+        if 0 <= task_index < len(self.tasks):
+            self.tasks[task_index].mark_complete()
+            print(f"Task '{self.tasks[task_index].description}' marked as complete.")
+        else:
+            print("Invalid task index.")
+
+# Example Usage:
+if __name__ == "__main__":
+    my_list = SmartToDoList()
+
+    my_list.add_task("Buy groceries", "high", "2025-10-25")
+    my_list.add_task("Finish project report", "high")
+    my_list.add_task("Call mom", "low", "2025-10-22")
+    my_list.add_task("Read a book", "medium")
+
+    my_list.view_tasks("priority")
+    my_list.view_tasks("due_date")
+
+    my_list.complete_task(0) # Assuming 'Buy groceries' is at index 0 after initial additions (not after sorting)
+    my_list.view_tasks()
