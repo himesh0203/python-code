@@ -1,0 +1,10 @@
+import uuid
+
+# Generate a version 4 (random) UUID
+new_guid = uuid.uuid4()
+
+# Print the generated GUID
+print(f"Generated GUID: {new_guid}")
+
+# You can also get the GUID as a string without the 'UUID()' object wrapper
+print(f"Generated GUID (as string): {str(new_guid)}")
