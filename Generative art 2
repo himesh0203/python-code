@@ -1,0 +1,107 @@
+import turtle
+import random
+import math
+
+class TreeGenerator:
+    """
+    A generative art program that uses recursion to create a fractal-like tree.
+    The tree's shape, color palette, and randomness change with each run.
+    """
+    def __init__(self, screen_size=(800, 800), pen_speed=0):
+        self.screen_size = screen_size
+        self.pen_speed = pen_speed
+        self.t = turtle.Turtle()
+        self.t.speed(self.pen_speed)
+        self.t.hideturtle()
+        self.screen = turtle.Screen()
+        self.screen.title("Generative Art Tree")
+        self.screen.setup(width=self.screen_size[0], height=self.screen_size[1])
+        self.screen.tracer(0, 0)
+
+        # Generate a random color palette for the tree
+        self.base_hue = random.uniform(0, 1)
+        self.palette = [self._hsv_to_rgb(self.base_hue, s, v) 
+                        for s in [0.7, 0.6, 0.5, 0.4] 
+                        for v in [0.8, 0.7, 0.6]]
+
+    def _hsv_to_rgb(self, h, s, v):
+        """Converts HSV color model to RGB."""
+        if s == 0.0:
+            return v, v, v
+        i = int(h * 6.0)
+        f = (h * 6.0) - i
+        p = v * (1.0 - s)
+        q = v * (1.0 - s * f)
+        t = v * (1.0 - s * (1.0 - f))
+        i %= 6
+        if i == 0:
+            return v, t, p
+        if i == 1:
+            return q, v, p
+        if i == 2:
+            return p, v, t
+        if i == 3:
+            return p, q, v
+        if i == 4:
+            return t, p, v
+        if i == 5:
+            return v, p, q
+
+    def _draw_branch(self, length, level, angle_offset=0):
+        """
+        Recursively draws the tree branches.
+        length: length of the current branch.
+        level: recursion depth.
+        angle_offset: a random variation to create a more organic look.
+        """
+        if level <= 0:
+            return
+        
+        # Set branch color based on recursion level
+        color_index = min(level - 1, len(self.palette) - 1)
+        self.t.color(self.palette[color_index])
+
+        # Draw the branch
+        self.t.pensize(level / 2)
+        self.t.forward(length)
+
+        # Recursively call for new branches
+        num_branches = random.randint(2, 4)
+        for _ in range(num_branches):
+            branch_angle = random.uniform(20, 45) + angle_offset
+            length_reduction = random.uniform(0.6, 0.8)
+            
+            # Use random sign for left or right turn
+            if random.random() < 0.5:
+                self.t.left(branch_angle)
+            else:
+                self.t.right(branch_angle)
+
+            self._draw_branch(length * length_reduction, level - 1, random.uniform(-10, 10))
+            
+            # Return to original position
+            if random.random() < 0.5:
+                self.t.right(branch_angle)
+            else:
+                self.t.left(branch_angle)
+
+        self.t.backward(length)
+
+    def generate(self, max_level=10, initial_length=150):
+        """
+        Sets up the drawing and starts the generation process.
+        """
+        self.t.penup()
+        self.t.goto(0, -self.screen_size[1] / 2 + 50)
+        self.t.setheading(90)
+        self.t.pendown()
+        
+        # Initial branch drawing
+        self._draw_branch(initial_length, max_level)
+        
+        self.screen.update()
+        self.screen.exitonclick()
+
+if __name__ == "__main__":
+    generator = TreeGenerator()
+    generator.generate()
