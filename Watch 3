@@ -1,0 +1,72 @@
+import datetime
+import random
+
+class VirtualFitnessCoach:
+    def __init__(self, name):
+        self.name = name
+        self.workout_plans = {
+            "beginner": ["10-minute walk", "20-minute jog", "30-minute yoga"],
+            "intermediate": ["30-minute run", "40-minute strength training", "50-minute cycling"],
+            "advanced": ["60-minute marathon", "90-minute HIIT", "120-minute endurance training"]
+        }
+        self.nutrition_plans = {
+            "vegetarian": ["salad", "fruits", "whole grains"],
+            "vegan": ["plant-based protein", "legumes", "whole grains"],
+            "omnivore": ["lean protein", "whole grains", "vegetables"]
+        }
+        self.motivation_quotes = [
+            "Believe you can and you're halfway there.",
+            "It does not matter how slowly you go as long as you do not stop.",
+            "Success is not final, failure is not fatal: It is the courage to continue that counts."
+        ]
+
+    def create_workout_plan(self, level):
+        print(f"Creating workout plan for {self.name}...")
+        plan = random.choice(self.workout_plans[level])
+        print(f"Workout plan: {plan}")
+
+    def create_nutrition_plan(self, diet):
+        print(f"Creating nutrition plan for {self.name}...")
+        plan = random.choice(self.nutrition_plans[diet])
+        print(f"Nutrition plan: {plan}")
+
+    def get_motivation_quote(self):
+        print(f"Getting motivation quote for {self.name}...")
+        quote = random.choice(self.motivation_quotes)
+        print(f"Motivation quote: {quote}")
+
+    def track_progress(self):
+        print(f"Tracking progress for {self.name}...")
+        progress = random.randint(1, 100)
+        print(f"Progress: {progress}%")
+
+def main():
+    coach = VirtualFitnessCoach("John Doe")
+
+    while True:
+        print("\nVirtual Fitness Coach Menu:")
+        print("1. Create Workout Plan")
+        print("2. Create Nutrition Plan")
+        print("3. Get Motivation Quote")
+        print("4. Track Progress")
+        print("5. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            level = input("Enter fitness level (beginner, intermediate, advanced): ")
+            coach.create_workout_plan(level)
+        elif choice == "2":
+            diet = input("Enter diet type (vegetarian, vegan, omnivore): ")
+            coach.create_nutrition_plan(diet)
+        elif choice == "3":
+            coach.get_motivation_quote()
+        elif choice == "4":
+            coach.track_progress()
+        elif choice == "5":
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
