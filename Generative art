@@ -1,0 +1,102 @@
+import random
+from PIL import Image, ImageDraw
+import math
+
+# --- Configuration for the generative art ---
+WIDTH = 1200
+HEIGHT = 800
+MAX_RECURSION_DEPTH = 11
+MAX_BRANCHES_PER_SPLIT = 3
+INITIAL_BRANCH_LENGTH = 150
+BACKGROUND_COLOR = (25, 25, 35)
+
+class FractalTree:
+    """
+    A class to generate a complex, recursive fractal tree image.
+    Uses Pillow for image creation and manipulates color, angle,
+    and branch length based on recursion depth.
+    """
+    def __init__(self, width, height, background_color):
+        self.width = width
+        self.height = height
+        self.image = Image.new('RGB', (width, height), background_color)
+        self.draw = ImageDraw.Draw(self.image)
+        self.branch_data = [] # Stores data for drawing branches later
+
+    def _draw_branch(self, x1, y1, length, angle, depth):
+        """
+        Recursively draws the branches of the fractal tree.
+        """
+        if depth > MAX_RECURSION_DEPTH:
+            return
+
+        # End coordinates of the current branch
+        x2 = x1 + length * math.cos(math.radians(angle))
+        y2 = y1 - length * math.sin(math.radians(angle))
+
+        # Determine branch color based on depth
+        r = int(120 - 10 * depth)
+        g = int(150 + 8 * depth)
+        b = int(60 + 15 * depth)
+        color = (max(0, r), max(0, g), max(0, b))
+
+        # Branch thickness decreases with depth
+        thickness = int(max(1, (MAX_RECURSION_DEPTH - depth + 1) * 2))
+
+        # Store branch data to draw after all recursive calls finish
+        self.branch_data.append(((x1, y1, x2, y2), color, thickness))
+        
+        # End recursion if branch becomes too small
+        if length < 5:
+            return
+
+        # Recursive calls for new branches
+        for _ in range(random.randint(1, MAX_BRANCHES_PER_SPLIT)):
+            new_length = length * random.uniform(0.65, 0.85)
+            new_angle = angle + random.uniform(-40, 40)
+            self._draw_branch(x2, y2, new_length, new_angle, depth + 1)
+
+    def generate(self):
+        """
+        Starts the generation process from the base of the tree.
+        """
+        start_x = self.width / 2
+        start_y = self.height * 0.9
+        initial_angle = 90
+
+        # Initiate the recursive drawing process
+        self._draw_branch(start_x, start_y, INITIAL_BRANCH_LENGTH, initial_angle, 1)
+
+        # Draw all branches from collected data to handle rendering order
+        for branch, color, thickness in self.branch_data:
+            x1, y1, x2, y2 = branch
+            self.draw.line((x1, y1, x2, y2), fill=color, width=thickness)
+
+    def save(self, filename):
+        """
+        Saves the generated image to a file.
+        """
+        self.image.save(filename)
+        print(f"Image saved as '{filename}'")
+
+def main():
+    """
+    Main function to orchestrate the generation and saving of the fractal tree.
+    """
+    print("Generating a new fractal tree image...")
+    # Seed the random number generator for different results each run
+    random.seed()
+
+    # Create an instance of the FractalTree
+    tree_generator = FractalTree(WIDTH, HEIGHT, BACKGROUND_COLOR)
+
+    # Generate the art
+    tree_generator.generate()
+
+    # Save the output file
+    output_filename = "fractal_tree.png"
+    tree_generator.save(output_filename)
+    print("Generation complete.")
+
+if __name__ == "__main__":
+    main()
