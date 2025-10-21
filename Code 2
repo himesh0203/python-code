@@ -1,0 +1,134 @@
+import random
+from datetime import datetime, timedelta
+
+# --- Data models (simplified for demonstration) ---
+
+class User:
+    def __init__(self, user_id, username, total_steps=0, pet=None):
+        self.user_id = user_id
+        self.username = username
+        self.total_steps = total_steps
+        self.pet = pet or VirtualPet(f"{username}'s Buddy")
+        self.weekly_progress = {} # Tracks steps per day
+
+class VirtualPet:
+    def __init__(self, name, level=1, health=100, happiness=100):
+        self.name = name
+        self.level = level
+        self.health = health
+        self.happiness = happiness
+
+    def feed(self):
+        self.health = min(100, self.health + 20)
+        self.happiness = min(100, self.happiness + 10)
+
+    def play(self):
+        self.happiness = min(100, self.happiness + 20)
+
+    def get_status(self):
+        status = "Happy and Healthy"
+        if self.health < 50 or self.happiness < 50:
+            status = "Feeling a little down"
+        if self.health < 20 or self.happiness < 20:
+            status = "Needs urgent attention!"
+        return status
+
+class Reward:
+    def __init__(self, name, description, points_cost):
+        self.name = name
+        self.description = description
+        self.points_cost = points_cost
+
+# --- Core game engine logic ---
+
+class FitnessGameEngine:
+    def __init__(self):
+        self.users = {}
+        self.rewards = [
+            Reward("Cafe Discount", "10% off at Healthy Bites Cafe", 100),
+            Reward("Sports Gear Voucher", "$20 voucher for sports equipment", 500),
+            Reward("Bonus XP", "2x XP for your pet for 24 hours", 250)
+        ]
+
+    def add_user(self, user_id, username):
+        if user_id not in self.users:
+            self.users[user_id] = User(user_id, username)
+            print(f"New user {username} added with pet {self.users[user_id].pet.name}.")
+        else:
+            print(f"User {username} already exists.")
+
+    def log_steps(self, user_id, steps):
+        if user_id in self.users:
+            user = self.users[user_id]
+            user.total_steps += steps
+            
+            # Update weekly progress
+            today = datetime.now().strftime("%Y-%m-%d")
+            user.weekly_progress[today] = user.weekly_progress.get(today, 0) + steps
+            
+            # Reward pet for activity
+            if steps > 5000:
+                user.pet.feed()
+                print(f"{user.username} walked {steps} steps! Pet {user.pet.name} is happy.")
+            elif steps < 1000:
+                user.pet.health -= 5 # Pet's health declines if user is inactive
+                user.pet.happiness -= 5
+                print(f"Warning: {user.username} was inactive. Pet {user.pet.name} is getting sad.")
+            
+            # Check for pet level up
+            if user.total_steps // 50000 > user.pet.level:
+                user.pet.level += 1
+                print(f"Congratulation! Pet {user.pet.name} leveled up to {user.pet.level}!")
+        else:
+            print("User not found.")
+            
+    def display_user_status(self, user_id):
+        if user_id in self.users:
+            user = self.users[user_id]
+            print(f"\n--- User Status for {user.username} ---")
+            print(f"Total Steps: {user.total_steps}")
+            print(f"Pet Name: {user.pet.name}")
+            print(f"Pet Level: {user.pet.level}")
+            print(f"Pet Health: {user.pet.health}/100")
+            print(f"Pet Happiness: {user.pet.happiness}/100")
+            print(f"Pet Status: {user.pet.get_status()}")
+            print(f"Weekly Steps: {user.weekly_progress}")
+        else:
+            print("User not found.")
+
+    def redeem_reward(self, user_id, reward_name):
+        # In a real app, this would check if user has enough points
+        # and deduct them before confirming the reward.
+        reward = next((r for r in self.rewards if r.name == reward_name), None)
+        if user_id in self.users and reward:
+            print(f"User {self.users[user_id].username} redeemed {reward.name}.")
+        else:
+            print("Could not redeem reward.")
+
+# --- Example usage ---
+
+if __name__ == "__main__":
+    game = FitnessGameEngine()
+
+    # Add new users
+    game.add_user("user_123", "Alice")
+    game.add_user("user_456", "Bob")
+
+    # Log fitness activity over a few days
+    print("\n--- Day 1 ---")
+    game.log_steps("user_123", 8000)
+    game.log_steps("user_456", 2000)
+
+    print("\n--- Day 2 ---")
+    game.log_steps("user_123", 12000)
+    game.log_steps("user_456", 1500)
+    
+    print("\n--- Day 3 ---")
+    game.log_steps("user_456", 6000)
+    
+    # Check on user and pet status
+    game.display_user_status("user_123")
+    game.display_user_status("user_456")
+    
+    # Simulate a user redeeming a reward
+    game.redeem_reward("user_123", "Cafe Discount")
