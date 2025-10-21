@@ -1,0 +1,66 @@
+import datetime
+
+class FitnessWatch:
+    def __init__(self, name):
+        self.name = name
+        self.steps = 0
+        self.distance = 0
+        self.calories = 0
+        self.heart_rate = 0
+        self.workout_log = []
+
+    def track_steps(self, steps):
+        self.steps += steps
+        print(f"Steps tracked: {steps}")
+
+    def track_distance(self, distance):
+        self.distance += distance
+        print(f"Distance tracked: {distance} km")
+
+    def track_calories(self, calories):
+        self.calories += calories
+        print(f"Calories tracked: {calories}")
+
+    def track_heart_rate(self, heart_rate):
+        self.heart_rate = heart_rate
+        print(f"Heart rate tracked: {heart_rate} bpm")
+
+    def log_workout(self, workout_type, duration):
+        self.workout_log.append((workout_type, duration))
+        print(f"Workout logged: {workout_type} for {duration} minutes")
+
+    def view_progress(self):
+        print(f"Name: {self.name}")
+        print(f"Steps: {self.steps}")
+        print(f"Distance: {self.distance} km")
+        print(f"Calories: {self.calories}")
+        print(f"Heart Rate: {self.heart_rate} bpm")
+        print("Workout Log:")
+        for workout in self.workout_log:
+            print(f"- {workout[0]} for {workout[1]} minutes")
+
+def main():
+    watch = FitnessWatch("John Doe")
+
+    while True:
+        print("\nFitness Watch Menu:")
+        print("1. Track Steps")
+        print("2. Track Distance")
+        print("3. Track Calories")
+        print("4. Track Heart Rate")
+        print("5. Log Workout")
+        print("6. View Progress")
+        print("7. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            steps = int(input("Enter steps: "))
+            watch.track_steps(steps)
+        elif choice == "2":
+            distance = float(input("Enter distance (km): "))
+            watch.track_distance(distance)
+        elif choice == "3":
+            calories = int(input("Enter calories: "))
+            watch.track_calories(calories)
+        elif choice
