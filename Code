@@ -1,0 +1,153 @@
+import random
+from datetime import datetime, timedelta
+
+# Define weights for each wellness metric
+WELLNESS_WEIGHTS = {
+    'activity': 0.5,
+    'sleep_quality': 0.3,
+    'stress_level': 0.2
+}
+
+class AuraBuddy:
+    """
+    A class to represent the virtual pet, AuraBuddy.
+    """
+    def __init__(self, name="Aura"):
+        self.name = name
+        self.level = 1
+        self.experience = 0
+        self.appearance = "Egg"
+        self.mood = "Neutral"
+    
+    def gain_experience(self, points):
+        """Adds experience points and handles leveling up."""
+        self.experience += points
+        print(f"{self.name} gained {points} XP!")
+        if self.experience >= self.level * 100:
+            self.level_up()
+    
+    def level_up(self):
+        """Increases the buddy's level."""
+        self.level += 1
+        self.experience = 0
+        self.update_appearance()
+        print(f"Congratulations! {self.name} leveled up to {self.level}!")
+    
+    def update_appearance(self):
+        """Updates the buddy's appearance based on its level."""
+        if self.level >= 5 and self.appearance == "Egg":
+            self.appearance = "Hatchling"
+            self.mood = "Happy"
+        elif self.level >= 15 and self.appearance == "Hatchling":
+            self.appearance = "Juvenile"
+            self.mood = "Playful"
+        # ... more evolution stages can be added
+    
+    def display_status(self):
+        """Prints the current status of the AuraBuddy."""
+        print(f"\n--- {self.name}'s Status ---")
+        print(f"Level: {self.level}")
+        print(f"Appearance: {self.appearance}")
+        print(f"Mood: {self.mood}")
+        print(f"XP: {self.experience}/{self.level * 100}\n")
+
+class User:
+    """
+    A class to represent a user and manage their daily wellness data.
+    """
+    def __init__(self, name):
+        self.name = name
+        self.buddy = AuraBuddy()
+        self.daily_data = {}  # Stores wellness data per day
+        self.current_quest = None
+        self.quest_completed = False
+    
+    def log_daily_metrics(self, date_str, steps, sleep_score, stress_score):
+        """Simulates logging daily metrics from a smartwatch."""
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        self.daily_data[date] = {
+            'steps': steps,
+            'sleep_quality': sleep_score,
+            'stress_level': stress_score
+        }
+    
+    def calculate_wellness_points(self, date_str):
+        """
+        Calculates daily wellness points based on metrics.
+        (Note: sleep_score and stress_level are normalized to a 0-10 scale for this example)
+        """
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        data = self.daily_data.get(date)
+        if not data:
+            print(f"No data available for {date_str}.")
+            return 0
+        
+        # Normalize steps for a base value, e.g., 10,000 steps = 100 points
+        activity_score = min(data['steps'] / 100, 100)
+        
+        # Calculate weighted score
+        wellness_score = (activity_score * WELLNESS_WEIGHTS['activity'] +
+                          data['sleep_quality'] * WELLNESS_WEIGHTS['sleep_quality'] +
+                          (10 - data['stress_level']) * WELLNESS_WEIGHTS['stress_level'])
+        
+        return int(wellness_score)
+        
+    def start_quest(self, quest):
+        """Assigns a new quest to the user."""
+        self.current_quest = quest
+        self.quest_completed = False
+        print(f"\nNew Quest: {quest['title']}")
+        print(f"Goal: {quest['description']}\n")
+
+    def check_quest_completion(self, date_str):
+        """Checks if the quest goal has been met."""
+        if self.current_quest and not self.quest_completed:
+            data = self.daily_data.get(datetime.strptime(date_str, "%Y-%m-%d").date())
+            if not data:
+                return False
+            
+            # Simplified check for quest completion
+            if data['steps'] >= self.current_quest['steps_goal']:
+                print(f"Quest '{self.current_quest['title']}' completed! You earned {self.current_quest['xp_reward']} XP.")
+                self.buddy.gain_experience(self.current_quest['xp_reward'])
+                self.quest_completed = True
+                return True
+        return False
+
+# Example of use
+if __name__ == "__main__":
+    # Create a new user
+    user1 = User("Alice")
+    user1.buddy.display_status()
+    
+    # Simulates a day of activity
+    date1 = "2025-10-21"
+    print(f"--- Simulating data for {date1} ---")
+    user1.log_daily_metrics(date1, steps=8500, sleep_score=8, stress_score=3)
+    points_earned = user1.calculate_wellness_points(date1)
+    print(f"Alice earned {points_earned} wellness points today.")
+    user1.buddy.gain_experience(points_earned)
+    
+    user1.buddy.display_status()
+
+    # Assign a quest
+    quest_explore = {
+        'title': "Forest Explorer",
+        'description': "Walk at least 10,000 steps to unlock a new appearance for your AuraBuddy.",
+        'steps_goal': 10000,
+        'xp_reward': 50
+    }
+    user1.start_quest(quest_explore)
+
+    # Simulate a second, more active day
+    date2 = "2025-10-22"
+    print(f"\n--- Simulating data for {date2} ---")
+    user1.log_daily_metrics(date2, steps=11000, sleep_score=9, stress_score=2)
+    points_earned_2 = user1.calculate_wellness_points(date2)
+    print(f"Alice earned {points_earned_2} wellness points today.")
+    user1.buddy.gain_experience(points_earned_2)
+
+    # Check for quest completion
+    user1.check_quest_completion(date2)
+    
+    user1.buddy.display_status()
