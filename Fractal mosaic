@@ -1,0 +1,103 @@
+# Required library: turtle for drawing graphics.
+# This program relies on randomness for generative art.
+
+import turtle
+import random
+import math
+
+class FractalMosaic:
+    """
+    Generates a fractal mosaic using object-oriented programming and recursion.
+    The mosaic consists of recursively drawn shapes with random variations.
+    """
+    def __init__(self, screen_width, screen_height):
+        self.screen = turtle.Screen()
+        self.screen.setup(width=screen_width, height=screen_height)
+        self.screen.title("Generative Fractal Mosaic")
+        self.screen.bgcolor("black")
+        self.t = turtle.Turtle()
+        self.t.speed(0)  # Set drawing speed to fastest
+        self.t.hideturtle()
+
+    def draw_chaos_shape(self, size, depth):
+        """
+        Draws a recursive shape with random parameters.
+        
+        Args:
+            size (float): The initial size of the shape.
+            depth (int): The current recursion depth.
+        """
+        if depth == 0:
+            return
+        
+        # Use a dictionary for more organized color management
+        colors = {
+            "red": (255, 0, 0), "green": (0, 255, 0), "blue": (0, 0, 255),
+            "yellow": (255, 255, 0), "cyan": (0, 255, 255), "magenta": (255, 0, 255)
+        }
+        
+        # Select a random color from the dictionary
+        color_name = random.choice(list(colors.keys()))
+        self.t.color(color_name)
+        
+        # Calculate random variations based on Normal Distribution
+        # This creates a more natural, less uniform look.
+        random_rotation = random.gauss(0, 45)  # mean=0, std_dev=45
+        random_size_factor = random.gauss(0.6, 0.1) # mean=0.6, std_dev=0.1
+
+        self.t.left(random_rotation)
+        self.t.begin_fill()
+        
+        num_sides = random.randint(3, 8)  # Draw a random polygon
+        for _ in range(num_sides):
+            self.t.forward(size)
+            self.t.right(360 / num_sides)
+        self.t.end_fill()
+        
+        # Recursive calls to create the fractal effect
+        for _ in range(num_sides):
+            self.t.forward(size)
+            self.t.right(360 / num_sides)
+            
+            # Use threading to make it complex and add concurrency
+            # (Note: Standard online compilers may not fully support this visually)
+            self.screen.ontimer(lambda: self.draw_chaos_shape(size * random_size_factor, depth - 1), 100)
+
+    def draw_mosaic(self, initial_size, initial_depth):
+        """
+        Starts the drawing process for the fractal mosaic.
+        
+        Args:
+            initial_size (float): The starting size of the main shape.
+            initial_depth (int): The starting recursion depth.
+        """
+        self.screen.colormode(255) # Use RGB color mode
+        self.t.up()
+        self.t.goto(0, 0)
+        self.t.down()
+        
+        # Use a list of starting parameters for a more complex initial pattern
+        start_params = [
+            (initial_size, initial_depth, 0),
+            (initial_size * 0.8, initial_depth, 90),
+            (initial_size * 0.6, initial_depth, 180),
+        ]
+        
+        for size, depth, angle in start_params:
+            self.t.setheading(angle)
+            self.draw_chaos_shape(size, depth)
+
+    def main(self):
+        """
+        Main function to run the program.
+        """
+        initial_size = 200
+        initial_depth = 4
+        self.draw_mosaic(initial_size, initial_depth)
+        self.screen.mainloop()
+
+# Guard for online compiler execution
+if __name__ == "__main__":
+    mosaic = FractalMosaic(screen_width=800, screen_height=800)
+    mosaic.main()
+
