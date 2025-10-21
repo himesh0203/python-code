@@ -1,0 +1,160 @@
+import datetime
+import random
+
+class FitnessWatch:
+    def __init__(self, name):
+        self.name = name
+        self.steps = 0
+        self.distance = 0
+        self.calories = 0
+        self.heart_rate = 0
+        self.workout_log = []
+        self.goals = {}
+        self.reminders = []
+        self.badges = []
+        self.friends = []
+        self.challenges = []
+
+    def track_steps(self, steps):
+        self.steps += steps
+        print(f"Steps tracked: {steps}")
+
+    def track_distance(self, distance):
+        self.distance += distance
+        print(f"Distance tracked: {distance} km")
+
+    def track_calories(self, calories):
+        self.calories += calories
+        print(f"Calories tracked: {calories}")
+
+    def track_heart_rate(self, heart_rate):
+        self.heart_rate = heart_rate
+        print(f"Heart rate tracked: {heart_rate} bpm")
+
+    def log_workout(self, workout_type, duration):
+        self.workout_log.append((workout_type, duration))
+        print(f"Workout logged: {workout_type} for {duration} minutes")
+
+    def set_goal(self, goal_type, target):
+        self.goals[goal_type] = target
+        print(f"Goal set: {goal_type} - {target}")
+
+    def add_reminder(self, reminder):
+        self.reminders.append(reminder)
+        print(f"Reminder added: {reminder}")
+
+    def earn_badge(self, badge):
+        self.badges.append(badge)
+        print(f"Badge earned: {badge}")
+
+    def add_friend(self, friend):
+        self.friends.append(friend)
+        print(f"Friend added: {friend}")
+
+    def join_challenge(self, challenge):
+        self.challenges.append(challenge)
+        print(f"Challenge joined: {challenge}")
+
+    def view_progress(self):
+        print(f"Name: {self.name}")
+        print(f"Steps: {self.steps}")
+        print(f"Distance: {self.distance} km")
+        print(f"Calories: {self.calories}")
+        print(f"Heart Rate: {self.heart_rate} bpm")
+        print("Workout Log:")
+        for workout in self.workout_log:
+            print(f"- {workout[0]} for {workout[1]} minutes")
+        print("Goals:")
+        for goal, target in self.goals.items():
+            print(f"- {goal}: {target}")
+        print("Reminders:")
+        for reminder in self.reminders:
+            print(f"- {reminder}")
+        print("Badges:")
+        for badge in self.badges:
+            print(f"- {badge}")
+        print("Friends:")
+        for friend in self.friends:
+            print(f"- {friend}")
+        print("Challenges:")
+        for challenge in self.challenges:
+            print(f"- {challenge}")
+
+    def share_progress(self):
+        print("Sharing progress on social media...")
+        print(f"Steps: {self.steps}")
+        print(f"Distance: {self.distance} km")
+        print(f"Calories: {self.calories}")
+
+    def get_recommendation(self):
+        print("Getting personalized recommendation...")
+        recommendation = random.choice(["Try running for 30 minutes tomorrow!", "Eat more fruits and vegetables!", "Get 8 hours of sleep tonight!"])
+        print(recommendation)
+
+def main():
+    watch = FitnessWatch("John Doe")
+
+    while True:
+        print("\nFitness Watch Menu:")
+        print("1. Track Steps")
+        print("2. Track Distance")
+        print("3. Track Calories")
+        print("4. Track Heart Rate")
+        print("5. Log Workout")
+        print("6. Set Goal")
+        print("7. Add Reminder")
+        print("8. Earn Badge")
+        print("9. Add Friend")
+        print("10. Join Challenge")
+        print("11. View Progress")
+        print("12. Share Progress")
+        print("13. Get Recommendation")
+        print("14. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            steps = int(input("Enter steps: "))
+            watch.track_steps(steps)
+        elif choice == "2":
+            distance = float(input("Enter distance (km): "))
+            watch.track_distance(distance)
+        elif choice == "3":
+            calories = int(input("Enter calories: "))
+            watch.track_calories(calories)
+        elif choice == "4":
+            heart_rate = int(input("Enter heart rate (bpm): "))
+            watch.track_heart_rate(heart_rate)
+        elif choice == "5":
+            workout_type = input("Enter workout type: ")
+            duration = int(input("Enter duration (minutes): "))
+            watch.log_workout(workout_type, duration)
+        elif choice == "6":
+            goal_type = input("Enter goal type: ")
+            target = input("Enter target: ")
+            watch.set_goal(goal_type, target)
+        elif choice == "7":
+            reminder = input("Enter reminder: ")
+            watch.add_reminder(reminder)
+        elif choice == "8":
+            badge = input("Enter badge: ")
+            watch.earn_badge(badge)
+        elif choice == "9":
+            friend = input("Enter friend's name: ")
+            watch.add_friend(friend)
+        elif choice == "10":
+            challenge = input("Enter challenge name: ")
+            watch.join_challenge(challenge)
+        elif choice == "11":
+            watch.view_progress()
+        elif choice == "12":
+            watch.share_progress()
+        elif choice == "13":
+            watch.get_recommendation()
+        elif choice == "14":
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
