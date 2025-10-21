@@ -1,0 +1,85 @@
+import datetime
+
+# एक काल्पनिक डेटाबेस जो यूजर डेटा को स्टोर करता है
+user_database = {}
+
+class User:
+    def __init__(self, name, level=1, xp=0, total_calories=0, daily_progress={}):
+        self.name = name
+        self.level = level
+        self.xp = xp
+        self.total_calories = total_calories
+        self.daily_progress = daily_progress
+
+    def add_xp(self, amount):
+        self.xp += amount
+        self.level_up()
+
+    def add_calories(self, calories_burned):
+        self.total_calories += calories_burned
+
+    def level_up(self):
+        # हर 1000 XP पर लेवल बढ़ाएँ
+        if self.xp >= self.level * 1000:
+            self.level += 1
+            print(f"बधाई हो, {self.name}! आप लेवल {self.level} पर पहुँच गए हैं!")
+            self.unlock_skill()
+    
+    def unlock_skill(self):
+        # लेवल के आधार पर नई स्किल अनलॉक करें
+        if self.level == 2:
+            print("नई स्किल: 'ट्रेनिंग बडी' अनलॉक हो गई है! आपका वर्चुअल साथी आपके साथ है।")
+        elif self.level == 5:
+            print("नई स्किल: 'पावर-अप चैलेंज' अनलॉक हो गई है! अब आप खास चुनौतियों को पूरा कर सकते हैं।")
+
+    def track_activity(self, activity, duration, calories_per_minute):
+        today = datetime.date.today().isoformat()
+        if today not in self.daily_progress:
+            self.daily_progress[today] = []
+
+        calories_burned = duration * calories_per_minute
+        xp_gained = duration * 10  # हर मिनट के लिए 10 XP
+        
+        self.daily_progress[today].append({
+            "activity": activity,
+            "duration": duration,
+            "calories_burned": calories_burned,
+            "xp_gained": xp_gained
+        })
+        self.add_calories(calories_burned)
+        self.add_xp(xp_gained)
+        print(f"{self.name} ने {duration} मिनट के लिए {activity} किया और {calories_burned} कैलोरी बर्न की।")
+        print(f"{xp_gained} XP मिला। कुल XP: {self.xp}")
+
+def get_user_stats(username):
+    if username in user_database:
+        user = user_database[username]
+        print("\n--- आपके आंकड़े ---")
+        print(f"नाम: {user.name}")
+        print(f"लेवल: {user.level}")
+        print(f"XP: {user.xp}")
+        print(f"कुल कैलोरी बर्न: {user.total_calories}")
+        print("--------------------")
+    else:
+        print("यूजर नहीं मिला।")
+
+def simulate_day():
+    # दो यूजर बनाएँ
+    user1 = User("अर्जुन")
+    user2 = User("रिया")
+    user_database[user1.name] = user1
+    user_database[user2.name] = user2
+    
+    print("--- दिन 1 शुरू ---")
+    user1.track_activity("दौड़ना", 30, 10)  # 30 मिनट दौड़ना
+    user2.track_activity("योग", 45, 5)     # 45 मिनट योग
+    
+    print("\n--- दिन 2 शुरू ---")
+    user1.track_activity("साइकिल चलाना", 60, 8) # 60 मिनट साइकिल चलाना
+    user2.track_activity("दौड़ना", 20, 10)     # 20 मिनट दौड़ना
+
+    get_user_stats("अर्जुन")
+    get_user_stats("रिया")
+
+# सिम्युलेशन चलाएँ
+simulate_day()
