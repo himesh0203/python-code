@@ -1,0 +1,65 @@
+class SmartPlant:
+    """
+    Represents a smart plant with watering needs based on simulated sensor data.
+    """
+    def __init__(self, name, optimal_moisture_min=40, optimal_moisture_max=70):
+        """
+        Initializes a SmartPlant instance.
+
+        Args:
+            name (str): The name of the plant.
+            optimal_moisture_min (int): The minimum optimal soil moisture percentage.
+            optimal_moisture_max (int): The maximum optimal soil moisture percentage.
+        """
+        self.name = name
+        self.optimal_moisture_min = optimal_moisture_min
+        self.optimal_moisture_max = optimal_moisture_max
+        self.current_moisture = 50  # Initial simulated moisture level
+
+    def get_moisture_reading(self):
+        """
+        Simulates reading the current soil moisture level.
+        In a real system, this would come from a sensor.
+        """
+        # For demonstration, we'll simulate a random fluctuation
+        import random
+        self.current_moisture += random.randint(-5, 5)
+        self.current_moisture = max(0, min(100, self.current_moisture)) # Keep within 0-100%
+        return self.current_moisture
+
+    def needs_watering(self):
+        """
+        Determines if the plant needs watering based on current moisture.
+        """
+        moisture = self.get_moisture_reading()
+        if moisture < self.optimal_moisture_min:
+            return True
+        return False
+
+    def water_plant(self):
+        """
+        Simulates watering the plant, increasing its moisture level.
+        """
+        if self.needs_watering():
+            print(f"Watering {self.name}...")
+            self.current_moisture += 20  # Simulate watering effect
+            self.current_moisture = min(100, self.current_moisture)
+            print(f"{self.name} watered. New moisture: {self.current_moisture}%")
+        else:
+            print(f"{self.name} does not need watering right now. Current moisture: {self.current_moisture}%")
+
+# --- Demonstration ---
+if __name__ == "__main__":
+    my_plant = SmartPlant("Basil", optimal_moisture_min=45, optimal_moisture_max=75)
+
+    print(f"Monitoring {my_plant.name}...")
+
+    for day in range(1, 6):
+        print(f"\n--- Day {day} ---")
+        current_moisture = my_plant.get_moisture_reading()
+        print(f"{my_plant.name} current moisture: {current_moisture}%")
+
+        if my_plant.needs_watering():
+            my_plant.water_plant()
+        else:
+            print(f"{my_plant.name} is happy, no watering needed.")
