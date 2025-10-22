@@ -1,0 +1,58 @@
+import json
+import os
+
+class DynamicPersonalAssistant:
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.preferences_file = f"preferences_{user_id}.json"
+        self.preferences = self._load_preferences()
+
+    def _load_preferences(self):
+        if os.path.exists(self.preferences_file):
+            with open(self.preferences_file, 'r') as f:
+                return json.load(f)
+        return {"greeting": "Hello", "response_style": "formal"}
+
+    def _save_preferences(self):
+        with open(self.preferences_file, 'w') as f:
+            json.dump(self.preferences, f, indent=4)
+
+    def greet(self):
+        print(f"{self.preferences['greeting']}, {self.user_id}!")
+
+    def respond(self, query):
+        if "how are you" in query.lower():
+            if self.preferences['response_style'] == "formal":
+                print("I am functioning optimally, thank you for asking.")
+            else:
+                print("I'm doing great, thanks!")
+        elif "change greeting" in query.lower():
+            new_greeting = input("What new greeting would you prefer? ")
+            self.preferences['greeting'] = new_greeting
+            self._save_preferences()
+            print(f"Greeting updated to: {new_greeting}")
+        elif "change response style" in query.lower():
+            new_style = input("Prefer 'formal' or 'casual' response style? ")
+            if new_style in ["formal", "casual"]:
+                self.preferences['response_style'] = new_style
+                self._save_preferences()
+                print(f"Response style updated to: {new_style}")
+            else:
+                print("Invalid style. Please choose 'formal' or 'casual'.")
+        else:
+            print("I'm still learning how to respond to that, but I'll remember your preferences for future interactions.")
+
+# Example Usage
+if __name__ == "__main__":
+    user_name = input("Enter your user ID: ")
+    assistant = DynamicPersonalAssistant(user_name)
+
+    assistant.greet()
+
+    while True:
+        user_query = input("You: ")
+        if user_query.lower() == "exit":
+            break
+        assistant.respond(user_query)
+
+    print("Assistant session ended.")
