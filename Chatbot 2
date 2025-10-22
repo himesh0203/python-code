@@ -1,0 +1,63 @@
+Create an OpenAI Account: Go to the OpenAI platform and create an account.
+Generate an API Key: Navigate to the "API keys" section in your account settings and click Create new secret key. Copy and save this key immediately, as you won't be able to see it again.
+Install the Library: In a local environment, you would use pip install openai. For an online compiler, the necessary library is typically pre-installed.
+
+
+
+import os
+import openai
+
+# Set your OpenAI API key here. 
+# It is best practice to use environment variables, but for online compilers,
+# you can paste your key directly. Remember to keep it private.
+openai.api_key = "YOUR_OPENAI_API_KEY_HERE"
+
+# This list stores the conversation history. The system message sets the bot's persona.
+messages = [
+    {"role": "system", "content": "You are a helpful and informative assistant named PythonBot. You can solve problems and answer questions on any topic."},
+]
+
+def get_response(prompt):
+    """Sends the conversation history and the user's new prompt to the OpenAI API."""
+    messages.append({"role": "user", "content": prompt})
+    
+    try:
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",  # You can use a different model, like "gpt-4" if you have access
+            messages=messages,
+            max_tokens=150,
+            temperature=0.7,
+        )
+        reply = completion.choices[0].message.content
+        messages.append({"role": "assistant", "content": reply})
+        return reply
+    except Exception as e:
+        return f"An error occurred: {e}"
+
+def chat_loop():
+    """Starts the conversational loop."""
+    print("PythonBot: Hello! How can I help you today? Type 'quit' to exit.")
+    
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == 'quit':
+            print("PythonBot: Goodbye! Have a great day.")
+            break
+        
+        response = get_response(user_input)
+        print(f"PythonBot: {response}")
+
+if __name__ == "__main__":
+    chat_loop()
+
+
+
+
+
+
+
+How to use the code
+Replace the API Key: In the line openai.api_key = "YOUR_OPENAI_API_KEY_HERE", paste your actual secret API key.
+Copy and Paste: Copy the entire code block.
+Use an Online Compiler: Paste the code into a Python online compiler, such as OneCompiler.
+Run the Code: Execute the code in the online compiler to start interacting with your chatbot in the console.
