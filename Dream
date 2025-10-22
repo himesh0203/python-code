@@ -1,0 +1,38 @@
+import random
+
+def generate_dream(keywords, emotional_state):
+    """
+    Generates a personalized dream scenario based on keywords and emotional state.
+    """
+    dream_elements = {
+        "happy": ["flying through a field of glowing flowers", "laughing with old friends", "discovering a hidden treasure"],
+        "calm": ["floating on a serene lake under a starry sky", "reading a book in a cozy cabin", "walking through a peaceful forest"],
+        "adventurous": ["exploring ancient ruins", "embarking on a quest with mythical creatures", "discovering a new planet"],
+        "anxious": ["trying to reach a destination but obstacles appear", "losing something important and searching frantically"],
+        "neutral": ["observing everyday scenes with a surreal twist", "encountering familiar objects in unexpected places"]
+    }
+
+    base_scenario = random.choice(dream_elements.get(emotional_state.lower(), dream_elements["neutral"]))
+    
+    keyword_integrations = []
+    for keyword in keywords:
+        integration_options = [
+            f"a giant {keyword} appears in the sky",
+            f"you find a miniature {keyword} in your pocket",
+            f"the ground beneath you transforms into {keyword}s"
+        ]
+        keyword_integrations.append(random.choice(integration_options))
+
+    if keyword_integrations:
+        return f"In your dream, you are {base_scenario}, and then suddenly, {' and '.join(keyword_integrations)}."
+    else:
+        return f"In your dream, you are {base_scenario}."
+
+# User input for dream generation
+user_keywords = input("Enter keywords for your dream (comma-separated): ").split(',')
+user_emotional_state = input("Enter your current emotional state (e.g., happy, calm, adventurous, anxious): ")
+
+# Generate and display the dream
+dream_scenario = generate_dream(user_keywords, user_emotional_state)
+print("\nYour personalized AI-generated dream:")
+print(dream_scenario)
