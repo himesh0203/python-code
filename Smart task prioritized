@@ -1,0 +1,53 @@
+def get_task_details():
+    """Gets task details (name, effort, importance) from the user."""
+    task_name = input("Enter task name: ")
+    while True:
+        try:
+            effort = int(input(f"Enter estimated effort for '{task_name}' (1-10, 10 being highest effort): "))
+            if 1 <= effort <= 10:
+                break
+            else:
+                print("Effort must be between 1 and 10.")
+        except ValueError:
+            print("Invalid input. Please enter a number for effort.")
+    while True:
+        try:
+            importance = int(input(f"Enter importance for '{task_name}' (1-10, 10 being most important): "))
+            if 1 <= importance <= 10:
+                break
+            else:
+                print("Importance must be between 1 and 10.")
+        except ValueError:
+            print("Invalid input. Please enter a number for importance.")
+    return {"name": task_name, "effort": effort, "importance": importance}
+
+def calculate_priority_score(task):
+    """Calculates a priority score for a task."""
+    # A simple scoring mechanism: higher importance, lower effort = higher priority
+    # To make it more professional, one might use weighted averages or more complex algorithms.
+    score = (task["importance"] * 2) - task["effort"]
+    return score
+
+def main():
+    """Main function to run the Smart Task Prioritizer."""
+    tasks = []
+    while True:
+        task_details = get_task_details()
+        tasks.append(task_details)
+        another_task = input("Add another task? (yes/no): ").lower()
+        if another_task != 'yes':
+            break
+
+    # Calculate scores and sort tasks
+    for task in tasks:
+        task["priority_score"] = calculate_priority_score(task)
+
+    # Sort in descending order of priority score
+    tasks.sort(key=lambda x: x["priority_score"], reverse=True)
+
+    print("\n--- Prioritized Task List ---")
+    for i, task in enumerate(tasks):
+        print(f"{i+1}. {task['name']} (Importance: {task['importance']}, Effort: {task['effort']}, Priority Score: {task['priority_score']})")
+
+if __name__ == "__main__":
+    main()
