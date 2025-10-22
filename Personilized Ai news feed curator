@@ -1,0 +1,45 @@
+class NewsCurator:
+    def __init__(self):
+        self.preferences = {}  # Stores user's preferred keywords and their frequency
+
+    def record_interaction(self, article_keywords):
+        """Records user interaction with an article, updating preferences."""
+        for keyword in article_keywords:
+            self.preferences[keyword] = self.preferences.get(keyword, 0) + 1
+
+    def recommend_articles(self, available_articles, num_recommendations=3):
+        """Recommends articles based on learned preferences."""
+        scored_articles = []
+        for article_id, article_keywords in available_articles.items():
+            score = 0
+            for keyword in article_keywords:
+                score += self.preferences.get(keyword, 0)  # Add preference score
+            scored_articles.append((score, article_id))
+
+        # Sort by score in descending order and return top recommendations
+        scored_articles.sort(key=lambda x: x[0], reverse=True)
+        return [article_id for score, article_id in scored_articles[:num_recommendations]]
+
+# --- Demonstration ---
+if __name__ == "__main__":
+    curator = NewsCurator()
+
+    # Simulate user interactions
+    curator.record_interaction(["AI", "machine learning", "robotics"])
+    curator.record_interaction(["space exploration", "NASA", "astronomy"])
+    curator.record_interaction(["AI", "ethics", "technology"])
+
+    print(f"Current preferences: {curator.preferences}")
+
+    # Available articles for recommendation
+    all_articles = {
+        "article_A": ["AI", "future", "society"],
+        "article_B": ["quantum physics", "new discoveries"],
+        "article_C": ["space exploration", "Mars mission"],
+        "article_D": ["robotics", "automation", "industry"],
+        "article_E": ["AI", "machine learning", "healthcare"]
+    }
+
+    # Get recommendations
+    recommendations = curator.recommend_articles(all_articles)
+    print(f"Recommended articles: {recommendations}")
