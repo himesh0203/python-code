@@ -1,0 +1,56 @@
+class TrafficLight:
+    def __init__(self, intersection_id, state="red", timer=0):
+        self.intersection_id = intersection_id
+        self.state = state  # "red", "green", "yellow"
+        self.timer = timer  # Time remaining in current state
+
+    def update_state(self, new_state, new_timer):
+        self.state = new_state
+        self.timer = new_timer
+        print(f"Intersection {self.intersection_id}: Traffic light changed to {self.state} for {self.timer} seconds.")
+
+class TrafficOptimizer:
+    def __init__(self, num_intersections):
+        self.intersections = [TrafficLight(i) for i in range(num_intersections)]
+
+    def simulate_traffic_flow(self, intersection_data):
+        """
+        Simulates traffic flow and adjusts traffic light timings.
+        intersection_data: A dictionary where keys are intersection IDs and values are
+                           simulated traffic density (e.g., number of cars waiting).
+        """
+        print("\n--- Simulating Traffic Optimization ---")
+        for intersection_id, density in intersection_data.items():
+            if intersection_id < len(self.intersections):
+                current_light = self.intersections[intersection_id]
+
+                if density > 5 and current_light.state != "green":
+                    # Prioritize intersections with high traffic density
+                    current_light.update_state("green", 15)  # Longer green light
+                elif density <= 2 and current_light.state == "green":
+                    # Reduce green light duration for low traffic
+                    current_light.update_state("red", 10)
+                elif current_light.state == "green" and current_light.timer > 0:
+                    current_light.timer -= 1
+                elif current_light.state == "red" and current_light.timer > 0:
+                    current_light.timer -= 1
+                elif current_light.state == "red" and current_light.timer == 0:
+                    # Cycle to green if red timer expires
+                    current_light.update_state("green", 10)
+                else:
+                    # Default to a balanced state if no specific conditions met
+                    current_light.update_state("red", 10)
+
+            else:
+                print(f"Warning: Intersection {intersection_id} not found.")
+
+# Example Usage
+if __name__ == "__main__":
+    optimizer = TrafficOptimizer(num_intersections=3)
+
+    # Simulate different traffic scenarios
+    traffic_scenario_1 = {0: 8, 1: 2, 2: 6}  # Intersection 0 and 2 have high traffic
+    optimizer.simulate_traffic_flow(traffic_scenario_1)
+
+    traffic_scenario_2 = {0: 3, 1: 7, 2: 1}  # Intersection 1 has high traffic
+    optimizer.simulate_traffic_flow(traffic_scenario_2)
