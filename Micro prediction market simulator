@@ -1,0 +1,62 @@
+class PredictionMarket:
+    def __init__(self, event_description):
+        self.event_description = event_description
+        self.yes_pool = 0.0
+        self.no_pool = 0.0
+        self.participants = {}  # {participant_id: {bet_type: amount}}
+
+    def place_bet(self, participant_id, bet_type, amount):
+        if bet_type not in ["yes", "no"]:
+            print("Invalid bet type. Please choose 'yes' or 'no'.")
+            return False
+        if amount <= 0:
+            print("Bet amount must be positive.")
+            return False
+
+        if bet_type == "yes":
+            self.yes_pool += amount
+        else:
+            self.no_pool += amount
+
+        if participant_id not in self.participants:
+            self.participants[participant_id] = {"yes": 0.0, "no": 0.0}
+        
+        self.participants[participant_id][bet_type] += amount
+        print(f"{participant_id} placed a {amount} bet on '{bet_type}' for '{self.event_description}'.")
+        return True
+
+    def determine_winner(self, outcome):
+        if outcome not in ["yes", "no"]:
+            print("Invalid outcome. Please specify 'yes' or 'no'.")
+            return
+
+        winning_pool = self.yes_pool if outcome == "yes" else self.no_pool
+        losing_pool = self.no_pool if outcome == "yes" else self.yes_pool
+        total_pool = self.yes_pool + self.no_pool
+
+        if winning_pool == 0:
+            print("No bets were placed on the winning outcome. All funds are lost for participants.")
+            return
+
+        print(f"\nOutcome for '{self.event_description}': {outcome.upper()} wins!")
+        print(f"Total pool: {total_pool}, Winning pool: {winning_pool}, Losing pool: {losing_pool}")
+
+        for participant_id, bets in self.participants.items():
+            participant_winning_bet = bets[outcome]
+            if participant_winning_bet > 0:
+                share_ratio = participant_winning_bet / winning_pool
+                winnings = share_ratio * total_pool
+                print(f"{participant_id} wins {winnings:.2f} (original bet: {participant_winning_bet:.2f}).")
+            else:
+                print(f"{participant_id} placed no bet on the winning outcome and loses their bets.")
+
+# Example Usage:
+if __name__ == "__main__":
+    market = PredictionMarket("Will AI surpass human intelligence by 2050?")
+
+    market.place_bet("Alice", "yes", 100)
+    market.place_bet("Bob", "no", 150)
+    market.place_bet("Charlie", "yes", 50)
+    market.place_bet("Alice", "no", 20) # Alice changes her mind partially
+
+    market.determine_winner("yes")
