@@ -1,0 +1,81 @@
+import google.generativeai as genai
+import os
+
+# Replace with your actual Google API Key
+# It's recommended to store API keys securely, e.g., in environment variables
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY") 
+
+if GOOGLE_API_KEY is None:
+    print("Error: GOOGLE_API_KEY environment variable not set.")
+    print("Please set the GOOGLE_API_KEY environment variable to your Google API key.")
+    exit()
+
+genai.configure(api_key=GOOGLE_API_KEY)
+
+# Initialize the Generative Model
+model = genai.GenerativeModel("gemini-pro")
+
+# Start a chat session
+chat = model.start_chat(history=[])
+
+def get_gemini_response(query):
+    """Sends a query to the Gemini model and returns the response."""
+    response = chat.send_message(query, stream=True)
+    return response
+
+print("Chatbot is live! Type 'quit' to exit.")
+while True:
+    user_input = input("You: ")
+    if user_input.lower() == 'quit':
+        break
+
+    if user_input:
+        gemini_response = get_gemini_response(user_input)
+        print("Bot:", end=" ")
+        for chunk in gemini_response:
+            print(chunk.text, end="")
+        print()
+print("Chatbot session ended.")
+
+
+
+
+
+
+
+
+
+
+
+import google.generativeai as genai: Imports the necessary library for interacting with Google's generative AI models.
+import os: Used to access environment variables, which is a good practice for storing sensitive information like API keys.
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY"): Retrieves your Google API key from an environment variable.
+genai.configure(api_key=GOOGLE_API_KEY): Configures the library with your API key.
+model = genai.GenerativeModel("gemini-pro"): Initializes the Gemini Pro model.
+chat = model.start_chat(history=[]): Starts a chat session. The history list can be used to maintain conversation context.
+get_gemini_response(query) function: Sends the user's query to the model and streams the response for a more interactive experience.
+Main chat loop:
+Continuously prompts the user for input.
+Exits if the user types "quit".
+Calls get_gemini_response to get the AI's reply.
+Prints the streamed response from the chatbot.
+To use this code:
+Install the library: pip install google-generativeai
+Get a Google API Key: Obtain one from the Google AI Studio.
+Set the environment variable: Before running the script, set the GOOGLE_API_KEY environment variable to your API key. For example, in your terminal:
+
+
+
+
+
+
+
+
+
+
+    export GOOGLE_API_KEY="YOUR_API_KEY_HERE"
+
+
+
+Replace "YOUR\_API\_KEY\_HERE" with your actual key).
+Run the script: python your_chatbot_file.py
