@@ -1,0 +1,59 @@
+import random
+
+# A dictionary to store keyword-based responses
+chatbot_responses = {
+    "greetings": {
+        "keywords": ["hello", "hi", "hey", "hola"],
+        "responses": ["Hi there!", "Hello! How can I help you today?", "Hey!", "Greetings!"]
+    },
+    "name": {
+        "keywords": ["your name", "who are you"],
+        "responses": ["I am a simple chatbot created with Python.", "You can call me ChatBot.", "I don't have a name, I'm just a program."]
+    },
+    "weather": {
+        "keywords": ["weather", "sunny", "rain", "temperature"],
+        "responses": ["I am not equipped to check the weather.", "I'm just a program, so I don't know the weather.", "The weather is always pleasant in the digital world!"]
+    },
+    "default": {
+        "responses": ["Sorry, I don't understand that. Could you rephrase?", "I'm not sure how to respond to that.", "Let's talk about something else."]
+    }
+}
+
+# The main chat function
+def chat():
+    print("ChatBot: Hi! I am a simple chatbot. Type 'quit' to exit.")
+    
+    while True:
+        user_input = input("You: ")
+        
+        # Check for the exit command
+        if user_input.lower() == 'quit':
+            print("ChatBot: Goodbye! Have a great day!")
+            break
+            
+        # Initialize a flag to track if a response is found
+        found_response = False
+
+        # Convert input to lowercase for easier matching
+        user_input_lower = user_input.lower()
+
+        # Check for keywords and provide a random response from the matching category
+        for intent, data in chatbot_responses.items():
+            if intent != "default":
+                for keyword in data["keywords"]:
+                    if keyword in user_input_lower:
+                        response = random.choice(data["responses"])
+                        print(f"ChatBot: {response}")
+                        found_response = True
+                        break  # Exit the inner loop once a keyword is found
+                if found_response:
+                    break  # Exit the outer loop if a response was found
+        
+        # If no specific keyword was matched, use a default response
+        if not found_response:
+            default_response = random.choice(chatbot_responses["default"]["responses"])
+            print(f"ChatBot: {default_response}")
+
+# Run the chat function
+if __name__ == "__main__":
+    chat()
