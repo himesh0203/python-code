@@ -1,0 +1,80 @@
+def smart_recipe_generator(available_ingredients, dietary_preferences=None):
+    """
+    Generates recipe suggestions based on available ingredients and dietary preferences.
+
+    Args:
+        available_ingredients (list): A list of strings representing ingredients the user has.
+        dietary_preferences (list, optional): A list of strings representing dietary restrictions
+                                              (e.g., "vegetarian", "gluten-free"). Defaults to None.
+
+    Returns:
+        list: A list of suggested recipes (strings).
+    """
+
+    # A simplified database of recipes and their ingredients/attributes
+    # In a real-world scenario, this would be a more extensive database or API call
+    recipes = {
+        "Pasta Primavera": {
+            "ingredients": ["pasta", "broccoli", "carrots", "garlic", "olive oil"],
+            "diet": ["vegetarian"]
+        },
+        "Chicken Stir-fry": {
+            "ingredients": ["chicken breast", "bell peppers", "onions", "soy sauce", "rice"],
+            "diet": []
+        },
+        "Lentil Soup": {
+            "ingredients": ["lentils", "carrots", "celery", "onions", "broth"],
+            "diet": ["vegetarian", "vegan"]
+        },
+        "Grilled Salmon with Asparagus": {
+            "ingredients": ["salmon fillet", "asparagus", "lemon", "olive oil"],
+            "diet": []
+        },
+        "Vegetable Curry": {
+            "ingredients": ["potatoes", "peas", "coconut milk", "curry powder", "rice"],
+            "diet": ["vegetarian", "vegan"]
+        }
+    }
+
+    suggested_recipes = []
+
+    for recipe_name, details in recipes.items():
+        # Check if all required ingredients are available
+        ingredients_match = all(ing in available_ingredients for ing in details["ingredients"])
+
+        # Check dietary preferences if specified
+        diet_match = True
+        if dietary_preferences:
+            for preference in dietary_preferences:
+                if preference not in details["diet"]:
+                    diet_match = False
+                    break
+
+        if ingredients_match and diet_match:
+            suggested_recipes.append(recipe_name)
+
+    if not suggested_recipes:
+        return ["No recipes found with your current ingredients and preferences. Try adding more ingredients or adjusting preferences."]
+    
+    return suggested_recipes
+
+if __name__ == "__main__":
+    # Example Usage
+    my_ingredients = ["pasta", "broccoli", "garlic", "chicken breast", "rice", "bell peppers"]
+    my_diet = ["vegetarian"]
+
+    print("--- Recipe Suggestions (Vegetarian) ---")
+    suggestions = smart_recipe_generator(my_ingredients, my_diet)
+    for recipe in suggestions:
+        print(f"- {recipe}")
+
+    print("\n--- Recipe Suggestions (No Dietary Restrictions) ---")
+    suggestions_no_diet = smart_recipe_generator(my_ingredients)
+    for recipe in suggestions_no_diet:
+        print(f"- {recipe}")
+
+    print("\n--- Recipe Suggestions (Limited Ingredients) ---")
+    limited_ingredients = ["lentils", "carrots", "onions"]
+    suggestions_limited = smart_recipe_generator(limited_ingredients, ["vegan"])
+    for recipe in suggestions_limited:
+        print(f"- {recipe}")
