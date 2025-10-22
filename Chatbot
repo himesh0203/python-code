@@ -1,0 +1,117 @@
+Here's a simple chatbot code in Python using Natural Language Processing (NLP) techniques:
+import nltk
+from nltk.stem import WordNetLemmatizer
+lemmatizer = WordNetLemmatizer()
+import json
+import pickle
+import numpy as np
+from keras.models import Sequential
+from keras.layers import Dense, Activation, Dropout
+from keras.optimizers import SGD
+import random
+
+Load intents data
+intents = json.loads(open('intents.json').read())
+
+Preprocess data
+words = []
+classes = []
+documents = []
+ignore_words = ['?', '!']
+for intent in intents['intents']:
+    for pattern in intent['patterns']:
+        # Tokenize words
+        w = nltk.word_tokenize(pattern)
+        words.extend(w)
+        # Add documents
+        documents.append((w, intent['tag']))
+        # Add classes
+        if intent['tag'] not in classes:
+            classes.append(intent['tag'])
+
+Lemmatize words
+words = [lemmatizer.lemmatize(w.lower()) for w in words if w not in ignore_words]
+words = sorted(list(set(words)))
+classes = sorted(list(set(classes)))
+
+Create training data
+training = []
+output_empty = [0] * len(classes)
+for doc in documents:
+    bag = []
+    pattern_words = doc[0]
+    pattern_words = [lemmatizer.lemmatize(word.lower()) for word in pattern_words]
+    for w in words:
+        bag.append(1) if w in pattern_words else bag.append(0)
+    output_row = list(output_empty)
+    output_row[classes.index(doc[1])] = 1
+    training.append([bag, output_row])
+random.shuffle(training)
+training = np.array(training)
+
+Split training data
+train_x = list(training[:,0])
+train_y = list(training[:,1])
+
+Create model
+model = Sequential()
+model.add(Dense(128, input_shape=(len(train_x[0]),), activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(64, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(len(train_y[0]), activation='softmax'))
+
+Compile model
+sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+model.compile(loss='categorical_crossentropy', optimizer=sgd, metrics=['accuracy'])
+
+Train model
+model.fit(np.array(train_x), np.array(train_y), epochs=200, batch_size=5, verbose=1)
+
+Save model
+model.save('chatbot_model.h5')
+
+Function to predict response
+def predict_response(message):
+    bag = [0] * len(words)
+    message_words = nltk.word_tokenize(message)
+    message_words = [lemmatizer.lemmatize(word.lower()) for word in message_words]
+    for w in message_words:
+        for i, word in enumerate(words):
+            if word == w:
+                bag[i] = 1
+    prediction = model.predict(np.array([bag]))[0]
+    index = np.argmax(prediction)
+    response_tag = classes[index]
+    for intent in intents['intents']:
+        if intent['tag'] == response_tag:
+            return random.choice(intent['responses'])
+
+Test chatbot
+while True:
+    message = input("You: ")
+    response = predict_response(message)
+    print("Chatbot: ", response)
+Intents JSON File
+Create a file named `intents.json` with the following structure:
+{
+    "intents": [
+        {
+            "tag": "greeting",
+            "patterns": ["Hi", "Hello", "Hey"],
+            "responses": ["Hi there!", "Hello!", "Hey! How can I help you?"]
+        },
+        {
+            "tag": "goodbye",
+            "patterns": ["Bye", "Goodbye", "See you later"],
+            "responses": ["See you later!", "Goodbye!", "Have a nice day!"]
+        }
+    ]
+}
+
+This is a basic example, and you can add more intents, patterns, and responses to make your chatbot more intelligent.
+
+Tips
+- Make sure to install required libraries: `nltk`, `keras`, `numpy`, `json`.
+- Download NLTK data: `nltk.download('punkt')`, `nltk.download('wordnet')`.
+- Run the code and test the chatbot.
