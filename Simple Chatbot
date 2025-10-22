@@ -1,0 +1,26 @@
+def simple_chatbot():
+    """
+    Implements a simple rule-based chatbot with predefined responses.
+    """
+    responses = {
+        "hello": "Hi there! How can I help you today?",
+        "how are you": "I'm a bot, so I don't have feelings, but I'm ready to assist!",
+        "what is your name": "I am a simple chatbot created in Python.",
+        "bye": "Goodbye! Have a great day!",
+        "help": "I can answer questions about greetings, my identity, and farewells. Try asking 'hello', 'how are you', 'what is your name', or 'bye'."
+    }
+
+    print("Chatbot: Hello! Type 'help' for assistance or 'bye' to exit.")
+
+    while True:
+        user_input = input("You: ").lower()  # Convert input to lowercase for case-insensitivity
+
+        if user_input in responses:
+            print(f"Chatbot: {responses[user_input]}")
+            if user_input == "bye":
+                break
+        else:
+            print("Chatbot: I'm not sure how to respond to that. Try asking something else or type 'help'.")
+
+if __name__ == "__main__":
+    simple_chatbot()
