@@ -1,0 +1,62 @@
+class AdaptiveLearningAgent:
+    def __init__(self, initial_knowledge=None):
+        self.knowledge = initial_knowledge if initial_knowledge is not None else {}
+
+    def learn(self, concept, feedback):
+        """
+        Updates the agent's knowledge based on feedback.
+        Positive feedback increases 'understanding', negative decreases it.
+        """
+        if concept not in self.knowledge:
+            self.knowledge[concept] = 0.5  # Neutral understanding initially
+
+        if feedback == "positive":
+            self.knowledge[concept] = min(1.0, self.knowledge[concept] + 0.1)
+        elif feedback == "negative":
+            self.knowledge[concept] = max(0.0, self.knowledge[concept] - 0.1)
+        else:
+            print("Invalid feedback. Use 'positive' or 'negative'.")
+
+    def recommend_content(self, available_concepts):
+        """
+        Recommends content based on areas with lower understanding.
+        """
+        if not available_concepts:
+            return "No concepts available for recommendation."
+
+        least_understood_concept = None
+        min_understanding = 1.1  # Greater than any possible understanding
+
+        for concept in available_concepts:
+            understanding = self.knowledge.get(concept, 0.5) # Default to neutral if unknown
+            if understanding < min_understanding:
+                min_understanding = understanding
+                least_understood_concept = concept
+        
+        if least_understood_concept:
+            return f"Recommended content: {least_understood_concept} (Understanding: {min_understanding:.2f})"
+        else:
+            return "No specific recommendation at this time."
+
+# Example Usage:
+if __name__ == "__main__":
+    agent = AdaptiveLearningAgent()
+    available_topics = ["Python Basics", "Data Structures", "Algorithms", "Machine Learning"]
+
+    print("Initial recommendations:")
+    print(agent.recommend_content(available_topics))
+
+    print("\nUser interacts with 'Python Basics' and gives positive feedback.")
+    agent.learn("Python Basics", "positive")
+    agent.learn("Python Basics", "positive")
+    print(agent.recommend_content(available_topics))
+
+    print("\nUser struggles with 'Algorithms' and gives negative feedback.")
+    agent.learn("Algorithms", "negative")
+    print(agent.recommend_content(available_topics))
+
+    print("\nUser learns 'Data Structures' thoroughly.")
+    agent.learn("Data Structures", "positive")
+    agent.learn("Data Structures", "positive")
+    agent.learn("Data Structures", "positive")
+    print(agent.recommend_content(available_topics))
