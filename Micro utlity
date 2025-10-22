@@ -1,0 +1,33 @@
+import time
+
+def set_wellbeing_reminder(interval_minutes, message):
+    """
+    Sets a recurring digital well-being reminder.
+
+    Args:
+        interval_minutes (int): The interval in minutes between reminders.
+        message (str): The reminder message to display.
+    """
+    if not isinstance(interval_minutes, int) or interval_minutes <= 0:
+        print("Error: Interval must be a positive integer.")
+        return
+
+    print(f"Digital well-being reminders set to trigger every {interval_minutes} minutes.")
+    print("Press Ctrl+C to stop the reminders.")
+
+    try:
+        while True:
+            time.sleep(interval_minutes * 60)  # Convert minutes to seconds
+            print(f"\n--- Digital Well-being Reminder ---")
+            print(message)
+            print("-----------------------------------")
+    except KeyboardInterrupt:
+        print("\nDigital well-being reminders stopped.")
+
+if __name__ == "__main__":
+    # Example usage:
+    # Set a reminder every 30 minutes to take a screen break
+    set_wellbeing_reminder(30, "Remember to take a short screen break and stretch!")
+
+    # You can also customize the reminder:
+    # set_wellbeing_reminder(60, "Consider a mindful minute away from your device.")
