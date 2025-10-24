@@ -1,0 +1,48 @@
+class SelfOrganizingList:
+    def __init__(self):
+        self.data = []
+        self.access_counts = {}
+
+    def add_item(self, item):
+        if item not in self.data:
+            self.data.append(item)
+            self.access_counts[item] = 0
+
+    def get_item(self, item):
+        if item in self.data:
+            self.access_counts[item] += 1
+            self._reorganize()
+            return item
+        return None
+
+    def _reorganize(self):
+        # Sort data based on access counts in descending order
+        self.data.sort(key=lambda x: self.access_counts[x], reverse=True)
+
+    def display(self):
+        print("Current List Order:", self.data)
+        print("Access Counts:", self.access_counts)
+
+# --- Usage Example ---
+if __name__ == "__main__":
+    my_list = SelfOrganizingList()
+
+    my_list.add_item("Apple")
+    my_list.add_item("Banana")
+    my_list.add_item("Orange")
+    my_list.add_item("Grape")
+
+    my_list.display()
+
+    print("\nAccessing 'Banana' multiple times...")
+    my_list.get_item("Banana")
+    my_list.get_item("Banana")
+    my_list.get_item("Apple")
+    my_list.get_item("Banana")
+
+    my_list.display()
+
+    print("\nAccessing 'Orange'...")
+    my_list.get_item("Orange")
+
+    my_list.display()
