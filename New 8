@@ -1,0 +1,70 @@
+import random
+
+class KMeans:
+    def __init__(self, k=3, max_iterations=100):
+        self.k = k
+        self.max_iterations = max_iterations
+        self.centroids = {}
+
+    def fit(self, data):
+        # Initialize centroids randomly
+        for i in range(self.k):
+            self.centroids[i] = random.choice(data)
+
+        for _ in range(self.max_iterations):
+            classifications = {i: [] for i in range(self.k)}
+
+            # Assign each data point to the closest centroid
+            for featureset in data:
+                distances = [self.euclidean_distance(featureset, self.centroids[centroid]) for centroid in self.centroids]
+                classification = distances.index(min(distances))
+                classifications[classification].append(featureset)
+
+            prev_centroids = dict(self.centroids)
+
+            # Update centroids based on the mean of assigned data points
+            for classification in classifications:
+                if classifications[classification]: # Avoid division by zero for empty clusters
+                    self.centroids[classification] = self.average(classifications[classification])
+
+            # Check for convergence
+            optimized = True
+            for c in self.centroids:
+                original_centroid = prev_centroids[c]
+                current_centroid = self.centroids[c]
+                if self.euclidean_distance(current_centroid, original_centroid) > 0.001: # Small tolerance for floating point
+                    optimized = False
+            if optimized:
+                break
+
+    def predict(self, data_point):
+        distances = [self.euclidean_distance(data_point, self.centroids[centroid]) for centroid in self.centroids]
+        classification = distances.index(min(distances))
+        return classification
+
+    @staticmethod
+    def euclidean_distance(point1, point2):
+        return sum([(x - y) ** 2 for x, y in zip(point1, point2)]) ** 0.5
+
+    @staticmethod
+    def average(points):
+        return [sum(col) / len(col) for col in zip(*points)]
+
+# Example Usage
+if __name__ == "__main__":
+    # Sample data points
+    data = [[1, 2], [1.5, 1.8], [5, 8], [8, 8], [1, 0.6], [9, 11]]
+
+    # Create and train the K-Means model
+    kmeans = KMeans(k=2)
+    kmeans.fit(data)
+
+    # Print the final centroids
+    print("Final Centroids:")
+    for centroid_id, centroid_coords in kmeans.centroids.items():
+        print(f"Centroid {centroid_id}: {centroid_coords}")
+
+    # Predict the cluster for a new data point
+    new_data_point = [2, 2]
+    prediction = kmeans.predict(new_data_point)
+    print(f"\nNew data point {new_data_point} belongs to cluster: {prediction}")
