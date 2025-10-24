@@ -1,0 +1,72 @@
+import sys
+
+def dynamic_quine():
+    # The template string for the quine, with a placeholder for the dynamic part
+    template = """
+import sys
+
+def dynamic_quine():
+    template = \"\"\"{}\"\"\"
+    
+    # Extract the current dynamic state from the template
+    current_state_marker = "DYNAMIC_STATE = "
+    start_index = template.find(current_state_marker) + len(current_state_marker)
+    end_index = template.find("\\n", start_index)
+    current_state_str = template[start_index:end_index].strip()
+    
+    try:
+        current_state = int(current_state_str)
+    except ValueError:
+        current_state = 0 # Default if not found or invalid
+    
+    next_state = (current_state + 1) % 10 # Cycle 0-9
+
+    # Reconstruct the code with the updated dynamic state
+    original_code = template.format(template)
+    modified_code_lines = original_code.splitlines()
+    
+    for i, line in enumerate(modified_code_lines):
+        if current_state_marker in line:
+            modified_code_lines[i] = f"    {current_state_marker}{next_state}"
+            break
+            
+    final_code = "\\n".join(modified_code_lines)
+    
+    print(final_code)
+
+if __name__ == "__main__":
+    dynamic_quine()
+
+DYNAMIC_STATE = {}
+"""
+    
+    # Extract the current dynamic state from the template
+    current_state_marker = "DYNAMIC_STATE = "
+    start_index = template.find(current_state_marker) + len(current_state_marker)
+    end_index = template.find("\n", start_index)
+    current_state_str = template[start_index:end_index].strip()
+    
+    try:
+        current_state = int(current_state_str)
+    except ValueError:
+        current_state = 0 # Default if not found or invalid
+    
+    next_state = (current_state + 1) % 10 # Cycle 0-9
+
+    # Reconstruct the code with the updated dynamic state
+    original_code = template.format(template)
+    modified_code_lines = original_code.splitlines()
+    
+    for i, line in enumerate(modified_code_lines):
+        if current_state_marker in line:
+            modified_code_lines[i] = f"DYNAMIC_STATE = {next_state}"
+            break
+            
+    final_code = "\n".join(modified_code_lines)
+    
+    print(final_code)
+
+if __name__ == "__main__":
+    dynamic_quine()
+
+DYNAMIC_STATE = 0
