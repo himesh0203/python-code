@@ -1,0 +1,81 @@
+import random
+import math
+
+def quantum_inspired_annealing(objective_function, search_space, iterations=1000, initial_temperature=1.0, cooling_rate=0.99):
+    """
+    A simplified quantum-inspired simulated annealing algorithm for optimization.
+
+    Args:
+        objective_function (callable): The function to minimize.
+                                      It takes a solution (tuple/list) and returns a scalar cost.
+        search_space (list of tuples): A list where each tuple defines the (min, max) range
+                                       for each dimension of the solution.
+        iterations (int): Number of iterations for the annealing process.
+        initial_temperature (float): Starting temperature for the annealing.
+        cooling_rate (float): Rate at which the temperature decreases.
+
+    Returns:
+        tuple: The best solution found.
+        float: The cost of the best solution.
+    """
+
+    num_dimensions = len(search_space)
+
+    # Initialize a random "quantum state" (solution)
+    current_solution = [random.uniform(low, high) for low, high in search_space]
+    current_cost = objective_function(current_solution)
+
+    best_solution = list(current_solution)
+    best_cost = current_cost
+
+    temperature = initial_temperature
+
+    for i in range(iterations):
+        # Generate a "superposition-inspired" new solution (perturbation)
+        # The magnitude of perturbation decreases with temperature, inspired by quantum fluctuations
+        new_solution = list(current_solution)
+        for d in range(num_dimensions):
+            perturbation_magnitude = (search_space[d][1] - search_space[d][0]) * (temperature / initial_temperature) * 0.1 # Scale by range and temperature
+            new_solution[d] += random.uniform(-perturbation_magnitude, perturbation_magnitude)
+            # Clamp to search space boundaries
+            new_solution[d] = max(search_space[d][0], min(search_space[d][1], new_solution[d]))
+
+        new_cost = objective_function(new_solution)
+
+        # "Quantum tunneling" probability (acceptance criteria)
+        # Higher probability of accepting worse solutions at higher temperatures
+        if new_cost < current_cost or random.random() < math.exp(-(new_cost - current_cost) / temperature):
+            current_solution = list(new_solution)
+            current_cost = new_cost
+
+        if current_cost < best_cost:
+            best_cost = current_cost
+            best_solution = list(current_solution)
+
+        temperature *= cooling_rate
+        if temperature < 1e-6: # Prevent division by zero or extremely small temperatures
+            temperature = 1e-6
+
+    return best_solution, best_cost
+
+# --- Example Usage ---
+def example_objective_function(solution):
+    """A simple 2D quadratic function to minimize (e.g., f(x,y) = x^2 + y^2)"""
+    x, y = solution
+    return x**2 + y**2
+
+# Define the search space for x and y
+search_space_example = [(-5.0, 5.0), (-5.0, 5.0)]
+
+if __name__ == "__main__":
+    print("Running Quantum-Inspired Annealing...")
+    best_sol, min_cost = quantum_inspired_annealing(
+        example_objective_function,
+        search_space_example,
+        iterations=5000,
+        initial_temperature=10.0,
+        cooling_rate=0.95
+    )
+
+    print(f"Best solution found: {best_sol}")
+    print(f"Minimum cost: {min_cost}")
