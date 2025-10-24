@@ -1,0 +1,85 @@
+import math
+import random
+
+class SelfOrganizingMap:
+    def __init__(self, input_dim, map_width, map_height, learning_rate=0.1, radius=5, num_iterations=1000):
+        self.input_dim = input_dim
+        self.map_width = map_width
+        self.map_height = map_height
+        self.learning_rate = learning_rate
+        self.initial_radius = radius
+        self.num_iterations = num_iterations
+
+        # Initialize weights randomly
+        self.weights = [[[random.uniform(0, 1) for _ in range(input_dim)]
+                         for _ in range(map_width)] for _ in range(map_height)]
+
+    def _euclidean_distance(self, vec1, vec2):
+        return math.sqrt(sum([(v1 - v2)**2 for v1, v2 in zip(vec1, vec2)]))
+
+    def _find_bmu(self, input_vector):
+        bmu_coords = (0, 0)
+        min_dist = float('inf')
+
+        for y in range(self.map_height):
+            for x in range(self.map_width):
+                weight_vector = self.weights[y][x]
+                dist = self._euclidean_distance(input_vector, weight_vector)
+                if dist < min_dist:
+                    min_dist = dist
+                    bmu_coords = (y, x)
+        return bmu_coords
+
+    def _update_weights(self, input_vector, bmu_coords, iteration):
+        current_learning_rate = self.learning_rate * (1 - iteration / self.num_iterations)
+        current_radius = self.initial_radius * math.exp(-iteration / self.num_iterations)
+
+        for y in range(self.map_height):
+            for x in range(self.map_width):
+                node_coords = (y, x)
+                # Calculate distance in the map grid
+                grid_dist = self._euclidean_distance(node_coords, bmu_coords)
+
+                if grid_dist <= current_radius:
+                    influence = math.exp(-(grid_dist**2) / (2 * (current_radius**2)))
+                    for i in range(self.input_dim):
+                        self.weights[y][x][i] += current_learning_rate * influence * (input_vector[i] - self.weights[y][x][i])
+
+    def train(self, data):
+        for iteration in range(self.num_iterations):
+            random_sample = random.choice(data)
+            bmu_coords = self._find_bmu(random_sample)
+            self._update_weights(random_sample, bmu_coords, iteration)
+
+    def map_data(self, data_point):
+        return self._find_bmu(data_point)
+
+# Example Usage:
+if __name__ == "__main__":
+    # Sample 2D data (e.g., colors in RGB)
+    sample_data = [
+        [1.0, 0.0, 0.0],  # Red
+        [0.0, 1.0, 0.0],  # Green
+        [0.0, 0.0, 1.0],  # Blue
+        [1.0, 1.0, 0.0],  # Yellow
+        [0.0, 1.0, 1.0],  # Cyan
+        [1.0, 0.0, 1.0],  # Magenta
+        [0.5, 0.5, 0.5],  # Grey
+        [0.1, 0.2, 0.3],
+        [0.8, 0.7, 0.6]
+    ]
+
+    # Initialize and train the SOM
+    som = SelfOrganizingMap(input_dim=3, map_width=10, map_height=10, num_iterations=5000)
+    som.train(sample_data)
+
+    # Map new data points to the trained SOM
+    print("Mapping data points to SOM:")
+    for data_point in sample_data:
+        bmu = som.map_data(data_point)
+        print(f"Data point {data_point} maps to BMU at {bmu}")
+
+    # You can also inspect the trained weights (e.g., visualize them as a color map)
+    # For online compilers, direct visualization is not possible, but you can print a subset.
+    print("\nSample of trained weights (top-left node):")
+    print(som.weights[0][0])
