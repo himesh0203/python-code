@@ -1,0 +1,70 @@
+import random
+import math
+
+def objective_function(x):
+    """
+    A complex objective function (energy landscape) to minimize.
+    This simulates a highly non-convex landscape with multiple local minima.
+    """
+    return (math.sin(x[0] * 5) * math.cos(x[1] * 3) +
+            math.cos(x[0] / 2) * math.sin(x[1] / 4) +
+            (x[0] - 0.5)**2 + (x[1] + 0.3)**2)
+
+def quantum_inspired_annealing(dimensions, num_iterations, initial_temperature, cooling_rate):
+    """
+    Simulates a quantum-inspired annealing process for optimization.
+    It introduces quantum-like tunneling probability for escaping local minima.
+    """
+    current_solution = [random.uniform(-2, 2) for _ in range(dimensions)]
+    current_energy = objective_function(current_solution)
+    best_solution = list(current_solution)
+    best_energy = current_energy
+    temperature = initial_temperature
+
+    for i in range(num_iterations):
+        # Propose a new solution
+        new_solution = [s + random.uniform(-0.1, 0.1) for s in current_solution]
+        new_energy = objective_function(new_solution)
+
+        # Calculate acceptance probability (Metropolis-Hastings criterion)
+        # Includes a "tunneling" probability for quantum-like escape from local minima
+        if new_energy < current_energy:
+            accept_prob = 1.0
+        else:
+            # Standard simulated annealing acceptance
+            sa_accept_prob = math.exp(-(new_energy - current_energy) / temperature)
+            # Quantum-like tunneling probability (simplified)
+            # This term encourages jumps even when energy increases, especially at lower temperatures
+            tunneling_prob = math.exp(-(abs(new_energy - current_energy) / (temperature * 0.1))) if temperature > 0.01 else 0
+
+            accept_prob = max(sa_accept_prob, tunneling_prob) # Consider the higher probability
+
+        if random.random() < accept_prob:
+            current_solution = list(new_solution)
+            current_energy = new_energy
+
+        if current_energy < best_energy:
+            best_solution = list(current_solution)
+            best_energy = current_energy
+
+        # Cool down the system
+        temperature *= cooling_rate
+        if temperature < 0.001: # Prevent division by zero and very small temperatures
+            temperature = 0.001
+
+    return best_solution, best_energy
+
+if __name__ == "__main__":
+    dimensions = 2
+    num_iterations = 10000
+    initial_temperature = 10.0
+    cooling_rate = 0.99
+
+    print("Starting Quantum-Inspired Annealing...")
+    final_solution, min_energy = quantum_inspired_annealing(
+        dimensions, num_iterations, initial_temperature, cooling_rate
+    )
+
+    print(f"\nOptimization Complete.")
+    print(f"Best solution found: {final_solution}")
+    print(f"Minimum energy found: {min_energy}")
