@@ -1,0 +1,61 @@
+import random
+
+class Planet:
+    def __init__(self, size=50, water_level=0.4, fertility_variation=0.2):
+        self.size = size
+        self.grid = [[0 for _ in range(size)] for _ in range(size)]
+        self.generate_terrain(water_level, fertility_variation)
+
+    def generate_terrain(self, water_level, fertility_variation):
+        for r in range(self.size):
+            for c in range(self.size):
+                # Simple height map generation (can be improved with Perlin noise)
+                height = (random.random() + random.random()) / 2 
+
+                if height < water_level:
+                    self.grid[r][c] = {'type': 'water', 'fertility': 0}
+                else:
+                    fertility = max(0, min(1, random.random() * (1 + fertility_variation) - fertility_variation/2))
+                    self.grid[r][c] = {'type': 'land', 'fertility': fertility}
+
+    def simulate_ecosystem(self, steps=10):
+        print("\nStarting ecosystem simulation...")
+        for step in range(steps):
+            print(f"Simulation Step {step + 1}:")
+            for r in range(self.size):
+                for c in range(self.size):
+                    cell = self.grid[r][c]
+                    if cell['type'] == 'land':
+                        # Simple plant growth based on fertility
+                        if random.random() < cell['fertility'] * 0.1: # 10% chance to grow if fertile
+                            cell['plants'] = cell.get('plants', 0) + 1
+                        # Simple resource depletion
+                        if cell.get('plants', 0) > 0 and random.random() < 0.05: # 5% chance of depletion
+                            cell['plants'] -= 1
+            self.display_ecosystem_status()
+
+    def display_ecosystem_status(self):
+        plant_count = sum(cell.get('plants', 0) for row in self.grid for cell in row if cell['type'] == 'land')
+        print(f"Total plants: {plant_count}")
+
+    def display_planet(self):
+        print("Planet Map:")
+        for r in range(self.size):
+            row_str = ""
+            for c in range(self.size):
+                cell = self.grid[r][c]
+                if cell['type'] == 'water':
+                    row_str += "~"
+                else:
+                    if cell.get('plants', 0) > 0:
+                        row_str += "P" # Represents plants
+                    else:
+                        row_str += "." # Represents barren land
+            print(row_str)
+
+# Main execution
+if __name__ == "__main__":
+    my_planet = Planet(size=20, water_level=0.5, fertility_variation=0.3)
+    my_planet.display_planet()
+    my_planet.simulate_ecosystem(steps=5)
+    my_planet.display_planet()
