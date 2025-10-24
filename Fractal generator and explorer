@@ -1,0 +1,107 @@
+import cmath
+
+def mandelbrot(c, max_iter):
+    """
+    Calculates if a point 'c' belongs to the Mandelbrot set.
+    Returns the number of iterations before divergence, or max_iter if it converges.
+    """
+    z = 0
+    for i in range(max_iter):
+        if abs(z) > 2:
+            return i
+        z = z*z + c
+    return max_iter
+
+def generate_fractal(width, height, x_min, x_max, y_min, y_max, max_iter):
+    """
+    Generates a textual representation of the Mandelbrot set.
+    """
+    image = []
+    for y in range(height):
+        row = []
+        for x in range(width):
+            real = x_min + (x / width) * (x_max - x_min)
+            imag = y_min + (y / height) * (y_max - y_min)
+            c = complex(real, imag)
+            m = mandelbrot(c, max_iter)
+            
+            # Character mapping for visual representation
+            if m == max_iter:
+                row.append('#')  # Inside the set
+            elif m < max_iter / 4:
+                row.append('.')
+            elif m < max_iter / 2:
+                row.append('*')
+            elif m < max_iter * 3 / 4:
+                row.append('+')
+            else:
+                row.append(' ')  # Outside the set
+        image.append("".join(row))
+    return "\n".join(image)
+
+def main():
+    """
+    Main function for interactive fractal exploration.
+    """
+    width, height = 80, 40  # Terminal dimensions
+    x_min, x_max = -2.0, 1.0
+    y_min, y_max = -1.5, 1.5
+    max_iter = 50
+
+    while True:
+        print("\n" * 50)  # Clear screen (approximate for online compilers)
+        print(generate_fractal(width, height, x_min, x_max, y_min, y_max, max_iter))
+        print(f"Current View: X[{x_min:.4f}, {x_max:.4f}], Y[{y_min:.4f}, {y_max:.4f}]")
+        print("Commands: zoom <factor>, pan <direction> <amount>, reset, quit")
+        
+        command = input("> ").strip().lower().split()
+
+        if command[0] == "quit":
+            break
+        elif command[0] == "reset":
+            x_min, x_max = -2.0, 1.0
+            y_min, y_max = -1.5, 1.5
+        elif command[0] == "zoom" and len(command) == 2:
+            try:
+                factor = float(command[1])
+                if factor <= 0:
+                    print("Zoom factor must be positive.")
+                    continue
+                center_x = (x_min + x_max) / 2
+                center_y = (y_min + y_max) / 2
+                x_range = (x_max - x_min) / factor
+                y_range = (y_max - y_min) / factor
+                x_min = center_x - x_range / 2
+                x_max = center_x + x_range / 2
+                y_min = center_y - y_range / 2
+                y_max = center_y + y_range / 2
+                max_iter += int(10 * (factor - 1)) # Increase iterations for deeper zoom
+            except ValueError:
+                print("Invalid zoom factor.")
+        elif command[0] == "pan" and len(command) == 3:
+            try:
+                direction = command[1]
+                amount = float(command[2])
+                x_range = x_max - x_min
+                y_range = y_max - y_min
+                if direction == "left":
+                    x_min -= amount * x_range
+                    x_max -= amount * x_range
+                elif direction == "right":
+                    x_min += amount * x_range
+                    x_max += amount * x_range
+                elif direction == "up":
+                    y_min += amount * y_range
+                    y_max += amount * y_range
+                elif direction == "down":
+                    y_min -= amount * y_range
+                    y_max -= amount * y_range
+                else:
+                    print("Invalid pan direction. Use 'left', 'right', 'up', or 'down'.")
+            except ValueError:
+                print("Invalid pan amount.")
+        else:
+            print("Invalid command.")
+
+if __name__ == "__main__":
+    main()
