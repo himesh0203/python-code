@@ -1,0 +1,42 @@
+class SimpleSentimentAnalyzer:
+    def __init__(self):
+        # A very basic lexicon for positive and negative words
+        self.positive_words = {"good", "great", "excellent", "happy", "love", "awesome", "fantastic", "amazing"}
+        self.negative_words = {"bad", "terrible", "poor", "sad", "hate", "awful", "unhappy", "horrible"}
+
+    def analyze_sentiment(self, text):
+        """
+        Analyzes the sentiment of a given text.
+        Returns "Positive", "Negative", or "Neutral".
+        """
+        words = text.lower().split()
+        positive_score = 0
+        negative_score = 0
+
+        for word in words:
+            if word in self.positive_words:
+                positive_score += 1
+            elif word in self.negative_words:
+                negative_score += 1
+
+        if positive_score > negative_score:
+            return "Positive"
+        elif negative_score > positive_score:
+            return "Negative"
+        else:
+            return "Neutral"
+
+# Example Usage
+if __name__ == "__main__":
+    analyzer = SimpleSentimentAnalyzer()
+
+    texts_to_analyze = [
+        "This product is absolutely great and I love it!",
+        "I hate this awful service, it was terrible.",
+        "The weather is okay, not good, not bad.",
+        "What a fantastic experience, truly amazing!"
+    ]
+
+    for text in texts_to_analyze:
+        sentiment = analyzer.analyze_sentiment(text)
+        print(f"Text: '{text}' -> Sentiment: {sentiment}")
