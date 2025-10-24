@@ -1,0 +1,84 @@
+class SmartShoppingList:
+    def __init__(self):
+        self.items = {}  # Dictionary to store items and their quantities
+
+    def add_item(self, item_name, quantity=1):
+        """Adds an item to the shopping list or updates its quantity."""
+        item_name = item_name.lower()  # Standardize item names
+        if item_name in self.items:
+            self.items[item_name] += quantity
+            print(f"Updated '{item_name}' quantity to {self.items[item_name]}.")
+        else:
+            self.items[item_name] = quantity
+            print(f"Added '{item_name}' with quantity {quantity}.")
+
+    def remove_item(self, item_name):
+        """Removes an item from the shopping list."""
+        item_name = item_name.lower()
+        if item_name in self.items:
+            del self.items[item_name]
+            print(f"Removed '{item_name}' from the list.")
+        else:
+            print(f"'{item_name}' not found in the list.")
+
+    def view_list(self):
+        """Displays the current shopping list."""
+        if not self.items:
+            print("Your shopping list is empty.")
+            return
+
+        print("\n--- Your Smart Shopping List ---")
+        for item, quantity in self.items.items():
+            print(f"- {item.capitalize()}: {quantity}")
+        print("------------------------------")
+
+    def suggest_item(self, category):
+        """Suggests common items based on a category."""
+        category = category.lower()
+        suggestions = {
+            "dairy": ["milk", "cheese", "yogurt"],
+            "produce": ["apples", "bananas", "spinach"],
+            "bakery": ["bread", "bagels", "muffins"],
+            "pantry": ["rice", "pasta", "cereal"],
+        }
+        if category in suggestions:
+            print(f"\nSuggestions for '{category}': {', '.join(suggestions[category])}")
+        else:
+            print(f"No suggestions available for category '{category}'.")
+
+def main():
+    shopping_list = SmartShoppingList()
+
+    while True:
+        print("\n--- Shopping List Menu ---")
+        print("1. Add Item")
+        print("2. Remove Item")
+        print("3. View List")
+        print("4. Get Suggestions")
+        print("5. Exit")
+
+        choice = input("Enter your choice (1-5): ")
+
+        if choice == '1':
+            item = input("Enter item name to add: ")
+            try:
+                qty = int(input("Enter quantity (default is 1): ") or "1")
+                shopping_list.add_item(item, qty)
+            except ValueError:
+                print("Invalid quantity. Please enter a number.")
+        elif choice == '2':
+            item = input("Enter item name to remove: ")
+            shopping_list.remove_item(item)
+        elif choice == '3':
+            shopping_list.view_list()
+        elif choice == '4':
+            category = input("Enter category for suggestions (e.g., dairy, produce): ")
+            shopping_list.suggest_item(category)
+        elif choice == '5':
+            print("Exiting Smart Shopping List. Happy shopping!")
+            break
+        else:
+            print("Invalid choice. Please enter a number between 1 and 5.")
+
+if __name__ == "__main__":
+    main()
