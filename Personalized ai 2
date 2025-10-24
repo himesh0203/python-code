@@ -1,0 +1,50 @@
+class PersonalizedAIAssistant:
+    def __init__(self, user_name="User"):
+        self.user_name = user_name
+        self.knowledge_base = {
+            "hello": f"Hello, {self.user_name}! How can I help you today?",
+            "how are you": "I am an AI, so I don't have feelings, but I'm ready to assist you!",
+            "what is your name": "I am a personalized AI assistant.",
+            "help": "I can answer simple questions based on my knowledge base. Try asking about my name or how I am.",
+            "goodbye": f"Goodbye, {self.user_name}! Have a great day!",
+        }
+        self.personal_info = {} # For storing simple personalized data
+
+    def greet(self):
+        return self.knowledge_base["hello"]
+
+    def respond(self, user_input):
+        user_input_lower = user_input.lower()
+
+        # Check for direct matches in knowledge base
+        for keyword, response in self.knowledge_base.items():
+            if keyword in user_input_lower:
+                return response
+
+        # Handle simple personalization (e.g., remembering a favorite color)
+        if "my favorite color is" in user_input_lower:
+            color = user_input_lower.split("my favorite color is")[-1].strip()
+            self.personal_info["favorite_color"] = color
+            return f"Understood, {self.user_name}! I'll remember that your favorite color is {color}."
+        elif "what is my favorite color" in user_input_lower:
+            if "favorite_color" in self.personal_info:
+                return f"Your favorite color is {self.personal_info['favorite_color']}, {self.user_name}."
+            else:
+                return f"I don't know your favorite color yet, {self.user_name}. Tell me!"
+
+        return "I'm sorry, I don't understand that. Can you rephrase or ask something else?"
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    # You can change the user's name here for personalization
+    assistant = PersonalizedAIAssistant(user_name="Alice")
+
+    print(assistant.greet())
+
+    while True:
+        user_query = input(f"{assistant.user_name}: ")
+        if user_query.lower() == "exit":
+            print(assistant.respond("goodbye"))
+            break
+        response = assistant.respond(user_query)
+        print(f"AI: {response}")
