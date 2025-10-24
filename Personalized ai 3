@@ -1,0 +1,102 @@
+import json
+
+class UserProfile:
+    """Stores and manages user preferences and history."""
+    def __init__(self, user_id):
+        self.user_id = user_id
+        self.preferences = {}
+        self.history = []
+
+    def load_profile(self, filename="user_profiles.json"):
+        """Loads user profile from a JSON file."""
+        try:
+            with open(filename, 'r') as f:
+                data = json.load(f)
+                if self.user_id in data:
+                    self.preferences = data[self.user_id].get('preferences', {})
+                    self.history = data[self.user_id].get('history', [])
+        except FileNotFoundError:
+            pass # No profile found, start with empty
+
+    def save_profile(self, filename="user_profiles.json"):
+        """Saves user profile to a JSON file."""
+        try:
+            with open(filename, 'r+') as f:
+                data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            data = {}
+
+        data[self.user_id] = {
+            'preferences': self.preferences,
+            'history': self.history
+        }
+        with open(filename, 'w') as f:
+            json.dump(data, f, indent=4)
+
+    def update_preference(self, key, value):
+        """Updates a specific user preference."""
+        self.preferences[key] = value
+
+    def add_to_history(self, interaction):
+        """Adds an interaction to the user's history."""
+        self.history.append(interaction)
+
+class ExternalAIService:
+    """Simulates interaction with an external AI service (e.g., an LLM API)."""
+    def __init__(self, api_key="YOUR_API_KEY"):
+        self.api_key = api_key
+        # In a real scenario, this would involve API calls to a service like OpenAI, Gemini, etc.
+
+    def get_response(self, prompt, user_preferences=None):
+        """Generates a response based on the prompt and user preferences."""
+        # This is a placeholder for a complex AI interaction.
+        # In a real application, this would involve sending the prompt and preferences
+        # to an external AI model and parsing its response.
+        if user_preferences:
+            preference_str = ", ".join([f"{k}: {v}" for k, v in user_preferences.items()])
+            return f"AI response (personalized with {preference_str}): {prompt.upper()} - How can I assist further?"
+        else:
+            return f"AI response: {prompt.upper()} - How can I assist further?"
+
+class PersonalizedAI:
+    """Integrates user profiles with an external AI service."""
+    def __init__(self, user_id, api_key="YOUR_API_KEY"):
+        self.user_profile = UserProfile(user_id)
+        self.user_profile.load_profile()
+        self.ai_service = ExternalAIService(api_key)
+
+    def interact(self, user_input):
+        """Handles user interaction, personalizing the AI response."""
+        self.user_profile.add_to_history(user_input)
+        response = self.ai_service.get_response(user_input, self.user_profile.preferences)
+        self.user_profile.save_profile() # Save profile after each interaction
+        return response
+
+    def set_preference(self, key, value):
+        """Sets a user preference."""
+        self.user_profile.update_preference(key, value)
+        self.user_profile.save_profile()
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    user_id = "user_123"
+    my_ai = PersonalizedAI(user_id)
+
+    print("--- Initial Interaction ---")
+    print(my_ai.interact("Tell me about today's weather."))
+
+    print("\n--- Setting Preferences ---")
+    my_ai.set_preference("favorite_topic", "science fiction")
+    my_ai.set_preference("communication_style", "formal")
+
+    print("\n--- Personalized Interaction ---")
+    print(my_ai.interact("Recommend a book."))
+
+    print("\n--- Another Personalized Interaction ---")
+    print(my_ai.interact("Explain quantum physics simply."))
+
+    # Simulate a new session for the same user
+    print("\n--- New Session for Same User ---")
+    new_session_ai = PersonalizedAI(user_id)
+    print(new_session_ai.interact("What was the last thing we talked about?"))
+    print(f"My favorite topic is: {new_session_ai.user_profile.preferences.get('favorite_topic')}")
