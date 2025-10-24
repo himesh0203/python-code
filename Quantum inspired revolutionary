@@ -1,0 +1,90 @@
+import random
+import math
+
+class QuantumBit:
+    """Represents a quantum bit (qubit) with superposition."""
+    def __init__(self):
+        # Amplitude of |0> state (alpha) and |1> state (beta)
+        # alpha^2 + beta^2 = 1
+        self.alpha = 1.0 / math.sqrt(2)
+        self.beta = 1.0 / math.sqrt(2)
+
+    def measure(self):
+        """Measures the qubit, collapsing it to either 0 or 1."""
+        if random.random() < self.alpha**2:
+            return 0
+        else:
+            return 1
+
+    def rotate(self, angle):
+        """Rotates the qubit's state using a rotation gate."""
+        new_alpha = self.alpha * math.cos(angle) - self.beta * math.sin(angle)
+        new_beta = self.alpha * math.sin(angle) + self.beta * math.cos(angle)
+        self.alpha = new_alpha
+        self.beta = new_beta
+
+class QIEA:
+    """Quantum-Inspired Evolutionary Algorithm for function optimization."""
+    def __init__(self, num_qubits, population_size, rotation_angle_step):
+        self.num_qubits = num_qubits
+        self.population_size = population_size
+        self.rotation_angle_step = rotation_angle_step
+        self.population = self._initialize_population()
+
+    def _initialize_population(self):
+        """Initializes a population of quantum-bit individuals."""
+        return [[QuantumBit() for _ in range(self.num_qubits)] for _ in range(self.population_size)]
+
+    def _decode_individual(self, individual):
+        """Decodes a quantum-bit individual into a classical binary string."""
+        return [qbit.measure() for qbit in individual]
+
+    def _evaluate_fitness(self, binary_solution):
+        """Evaluates the fitness of a binary solution (example: count ones)."""
+        # This is a simple example. In a real application, this would be the objective function.
+        return sum(binary_solution)
+
+    def run(self, generations):
+        """Runs the QIEA for a specified number of generations."""
+        best_solution = None
+        best_fitness = -1
+
+        for gen in range(generations):
+            decoded_population = [self._decode_individual(ind) for ind in self.population]
+            fitness_scores = [self._evaluate_fitness(sol) for sol in decoded_population]
+
+            # Find the best classical solution in the current generation
+            current_best_index = fitness_scores.index(max(fitness_scores))
+            current_best_solution = decoded_population[current_best_index]
+            current_best_fitness = fitness_scores[current_best_index]
+
+            if current_best_fitness > best_fitness:
+                best_fitness = current_best_fitness
+                best_solution = current_best_solution
+
+            # Update quantum bits based on the best solution
+            for i in range(self.population_size):
+                for j in range(self.num_qubits):
+                    # Simple rotation strategy: rotate towards the best solution
+                    if decoded_population[i][j] != best_solution[j]:
+                        if decoded_population[i][j] == 0: # Current is 0, best is 1
+                            self.population[i][j].rotate(self.rotation_angle_step)
+                        else: # Current is 1, best is 0
+                            self.population[i][j].rotate(-self.rotation_angle_step)
+
+            print(f"Generation {gen+1}: Best Fitness = {best_fitness}, Best Solution = {best_solution}")
+
+        return best_solution, best_fitness
+
+# Example Usage
+if __name__ == "__main__":
+    num_qubits = 10  # Number of bits in the solution
+    population_size = 5
+    rotation_angle_step = math.pi / 8 # Angle for qubit rotation
+
+    qiea = QIEA(num_qubits, population_size, rotation_angle_step)
+    final_solution, final_fitness = qiea.run(generations=20)
+
+    print("\nOptimization Complete:")
+    print(f"Final Best Solution: {final_solution}")
+    print(f"Final Best Fitness: {final_fitness}")
