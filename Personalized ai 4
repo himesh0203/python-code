@@ -1,0 +1,67 @@
+class PersonalizedAI:
+    def __init__(self, name="AI Assistant"):
+        self.name = name
+        self.user_profile = {}
+        self.knowledge_base = {
+            "hello": "Hello there! How can I help you today?",
+            "how are you": "I am an AI, so I don't have feelings, but I'm ready to assist you!",
+            "what is your name": f"My name is {self.name}.",
+            "tell me about yourself": "I am a simple AI designed to answer your questions and provide information.",
+            "weather": "I do not have real-time weather data in this basic version.",
+            "time": "I do not have access to the current time in this basic version.",
+            "exit": "Goodbye! Have a great day!"
+        }
+
+    def learn_user_preference(self, key, value):
+        """Allows the AI to learn and store user preferences."""
+        self.user_profile[key.lower()] = value
+        print(f"Learned your preference: {key} is {value}.")
+
+    def get_user_preference(self, key):
+        """Retrieves a stored user preference."""
+        return self.user_profile.get(key.lower())
+
+    def answer_question(self, question):
+        """Provides answers based on its knowledge base and user profile."""
+        question_lower = question.lower()
+
+        # Check for direct matches in knowledge base
+        if question_lower in self.knowledge_base:
+            return self.knowledge_base[question_lower]
+
+        # Check for personalized responses based on user profile
+        if "favorite color" in question_lower and self.get_user_preference("favorite color"):
+            return f"Your favorite color is {self.get_user_preference('favorite color')}."
+        
+        if "name" in question_lower and self.get_user_preference("name"):
+            return f"Your name is {self.get_user_preference('name')}."
+
+        # Generic response if no specific answer found
+        return "I'm sorry, I don't have information on that in this version."
+
+    def run(self):
+        """Starts the interactive AI session."""
+        print(f"Welcome to {self.name}! Type 'exit' to quit.")
+        while True:
+            user_input = input("You: ").strip()
+            if user_input.lower() == "exit":
+                print(self.answer_question("exit"))
+                break
+            
+            # Simple personalization example: learning user's name or favorite color
+            if "my name is" in user_input.lower():
+                name = user_input.lower().split("my name is")[-1].strip().title()
+                self.learn_user_preference("name", name)
+                print(f"Nice to meet you, {name}!")
+            elif "my favorite color is" in user_input.lower():
+                color = user_input.lower().split("my favorite color is")[-1].strip()
+                self.learn_user_preference("favorite color", color)
+                print(f"Understood! Your favorite color is {color}.")
+            else:
+                response = self.answer_question(user_input)
+                print(f"{self.name}: {response}")
+
+# Example Usage
+if __name__ == "__main__":
+    my_ai = PersonalizedAI("My Custom AI")
+    my_ai.run()
