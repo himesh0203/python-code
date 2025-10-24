@@ -1,0 +1,142 @@
+import random
+
+class City:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def distance(self, city):
+        dx = self.x - city.x
+        dy = self.y - city.y
+        return (dx**2 + dy**2)**0.5
+
+    def __repr__(self):
+        return f"({self.x}, {self.y})"
+
+class Tour:
+    def __init__(self, cities):
+        self.cities = list(cities)
+        random.shuffle(self.cities)
+        self.fitness = 0.0
+        self.distance_val = 0.0
+        self.calculate_fitness()
+
+    def calculate_fitness(self):
+        self.distance_val = self.get_total_distance()
+        self.fitness = 1 / float(self.distance_val)
+
+    def get_total_distance(self):
+        total_distance = 0
+        for i in range(len(self.cities)):
+            from_city = self.cities[i]
+            to_city = self.cities[(i + 1) % len(self.cities)]
+            total_distance += from_city.distance(to_city)
+        return total_distance
+
+    def __repr__(self):
+        return f"Tour: {self.cities}, Distance: {self.distance_val:.2f}, Fitness: {self.fitness:.4f}"
+
+class Population:
+    def __init__(self, population_size, cities):
+        self.tours = []
+        for _ in range(population_size):
+            self.tours.append(Tour(cities))
+
+    def get_fittest(self):
+        fittest_tour = self.tours[0]
+        for tour in self.tours:
+            if tour.fitness > fittest_tour.fitness:
+                fittest_tour = tour
+        return fittest_tour
+
+class GeneticAlgorithm:
+    def __init__(self, cities, population_size=50, mutation_rate=0.015, tournament_size=5, elitism=True):
+        self.cities = cities
+        self.population_size = population_size
+        self.mutation_rate = mutation_rate
+        self.tournament_size = tournament_size
+        self.elitism = elitism
+
+    def evolve_population(self, population):
+        new_population = Population(0, self.cities)
+        elitism_offset = 0
+        if self.elitism:
+            new_population.tours.append(population.get_fittest())
+            elitism_offset = 1
+
+        for i in range(elitism_offset, self.population_size):
+            parent1 = self.tournament_selection(population)
+            parent2 = self.tournament_selection(population)
+            child = self.crossover(parent1, parent2)
+            new_population.tours.append(child)
+
+        for i in range(elitism_offset, self.population_size):
+            self.mutate(new_population.tours[i])
+
+        return new_population
+
+    def crossover(self, parent1, parent2):
+        child_cities = [None] * len(self.cities)
+        start_pos = random.randint(0, len(self.cities) - 1)
+        end_pos = random.randint(0, len(self.cities) - 1)
+
+        if start_pos > end_pos:
+            start_pos, end_pos = end_pos, start_pos
+
+        for i in range(start_pos, end_pos + 1):
+            child_cities[i] = parent1.cities[i]
+
+        parent2_index = 0
+        for i in range(len(self.cities)):
+            if child_cities[i] is None:
+                while parent2.cities[parent2_index] in child_cities:
+                    parent2_index += 1
+                child_cities[i] = parent2.cities[parent2_index]
+                parent2_index += 1
+        
+        child = Tour(self.cities) # Create a dummy tour
+        child.cities = child_cities # Assign the new order
+        child.calculate_fitness()
+        return child
+
+    def mutate(self, tour):
+        for tour_pos1 in range(len(tour.cities)):
+            if random.random() < self.mutation_rate:
+                tour_pos2 = random.randint(0, len(tour.cities) - 1)
+                city1 = tour.cities[tour_pos1]
+                city2 = tour.cities[tour_pos2]
+                tour.cities[tour_pos1] = city2
+                tour.cities[tour_pos2] = city1
+        tour.calculate_fitness()
+
+    def tournament_selection(self, population):
+        tournament = Population(0, self.cities)
+        for _ in range(self.tournament_size):
+            random_index = random.randint(0, len(population.tours) - 1)
+            tournament.tours.append(population.tours[random_index])
+        return tournament.get_fittest()
+
+# --- Main execution ---
+if __name__ == "__main__":
+    # Create cities
+    cities = []
+    for i in range(10): # 10 cities
+        cities.append(City(x=random.randint(0, 200), y=random.randint(0, 200)))
+
+    # Initialize Genetic Algorithm
+    ga = GeneticAlgorithm(cities, population_size=100, mutation_rate=0.02, tournament_size=10)
+
+    # Initialize population
+    population = Population(ga.population_size, cities)
+    print(f"Initial shortest distance: {population.get_fittest().distance_val:.2f}")
+
+    # Evolve population over generations
+    for i in range(100): # 100 generations
+        population = ga.evolve_population(population)
+        if (i + 1) % 10 == 0:
+            print(f"Generation {i+1}: Shortest distance: {population.get_fittest().distance_val:.2f}")
+
+    print("\n--- Optimization Complete ---")
+    fittest_tour = population.get_fittest()
+    print(f"Final shortest distance: {fittest_tour.distance_val:.2f}")
+    print(f"Tour path: {fittest_tour.cities}")
