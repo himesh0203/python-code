@@ -1,0 +1,65 @@
+import random
+
+class QuantumInspiredBit:
+    """
+    A classical simulation of a quantum bit (qubit) demonstrating superposition
+    through probabilistic states.
+    """
+    def __init__(self):
+        # Represents the probability of being in state |0> (and 1-p for |1>)
+        self._probability_zero = 0.5 
+
+    def set_superposition(self, prob_zero: float):
+        """
+        Sets the probability of the bit being in state |0>.
+        prob_zero must be between 0 and 1.
+        """
+        if not (0 <= prob_zero <= 1):
+            raise ValueError("Probability must be between 0 and 1.")
+        self._probability_zero = prob_zero
+
+    def measure(self) -> int:
+        """
+        Simulates measuring the qubit, collapsing it to either |0> or |1>
+        based on the set probabilities.
+        """
+        if random.random() < self._probability_zero:
+            return 0  # Collapses to state |0>
+        else:
+            return 1  # Collapses to state |1>
+
+    def apply_hadamard_like_gate(self):
+        """
+        Simulates a Hadamard-like operation, pushing a definite state (0 or 1)
+        into a superposition of 0.5 probability for each.
+        """
+        # If currently a definite state, push to 50/50 superposition
+        if self._probability_zero == 0 or self._probability_zero == 1:
+            self._probability_zero = 0.5
+        # If already in superposition, this simplified gate doesn't change it
+        # In real quantum, Hadamard would rotate the state vector.
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    q_bit = QuantumInspiredBit()
+    print(f"Initial probability of |0>: {q_bit._probability_zero}")
+
+    # Set to a specific superposition state
+    q_bit.set_superposition(0.7)
+    print(f"Set probability of |0>: {q_bit._probability_zero}")
+
+    print("\nMeasuring 10 times:")
+    measurements = [q_bit.measure() for _ in range(10)]
+    print(f"Measurements: {measurements}")
+    print(f"Count of 0s: {measurements.count(0)}")
+    print(f"Count of 1s: {measurements.count(1)}")
+
+    # Apply Hadamard-like gate
+    q_bit.apply_hadamard_like_gate()
+    print(f"\nAfter Hadamard-like gate, probability of |0>: {q_bit._probability_zero}")
+
+    print("\nMeasuring 10 times after Hadamard-like gate:")
+    measurements_after_hadamard = [q_bit.measure() for _ in range(10)]
+    print(f"Measurements: {measurements_after_hadamard}")
+    print(f"Count of 0s: {measurements_after_hadamard.count(0)}")
+    print(f"Count of 1s: {measurements_after_hadamard.count(1)}")
