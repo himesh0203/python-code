@@ -1,0 +1,90 @@
+import random
+import math
+
+class QuantumInspiredOptimizer:
+    def __init__(self, objective_function, search_space, initial_temperature=100.0, cooling_rate=0.99, iterations=1000):
+        """
+        Initializes the Quantum-Inspired Optimizer.
+
+        Args:
+            objective_function (callable): The function to be minimized.
+                                         It should take a solution (list/tuple) and return a float.
+            search_space (list of tuples): A list where each tuple defines the (min, max) range
+                                          for each dimension of the solution.
+            initial_temperature (float): The starting temperature for simulated annealing.
+            cooling_rate (float): The rate at which the temperature decreases.
+            iterations (int): The maximum number of iterations.
+        """
+        self.objective_function = objective_function
+        self.search_space = search_space
+        self.initial_temperature = initial_temperature
+        self.cooling_rate = cooling_rate
+        self.iterations = iterations
+        self.dimensions = len(search_space)
+
+    def _generate_random_solution(self):
+        """Generates a random solution within the defined search space."""
+        return [random.uniform(low, high) for low, high in self.search_space]
+
+    def _perturb_solution(self, solution, temperature):
+        """
+        Perturbs a solution using a "quantum-inspired" probabilistic approach.
+        The magnitude of perturbation depends on the temperature.
+        """
+        new_solution = list(solution)
+        for i in range(self.dimensions):
+            low, high = self.search_space[i]
+            # Gaussian perturbation, scaled by temperature
+            perturbation = random.gauss(0, temperature / 10.0)
+            new_solution[i] = max(low, min(high, new_solution[i] + perturbation))
+        return new_solution
+
+    def optimize(self):
+        """Runs the optimization process."""
+        current_solution = self._generate_random_solution()
+        current_energy = self.objective_function(current_solution)
+        best_solution = list(current_solution)
+        best_energy = current_energy
+        temperature = self.initial_temperature
+
+        for i in range(self.iterations):
+            new_solution = self._perturb_solution(current_solution, temperature)
+            new_energy = self.objective_function(new_solution)
+
+            # Acceptance probability (Metropolis criterion)
+            if new_energy < current_energy or random.random() < math.exp((current_energy - new_energy) / temperature):
+                current_solution = list(new_solution)
+                current_energy = new_energy
+
+            if current_energy < best_energy:
+                best_solution = list(current_solution)
+                best_energy = current_energy
+
+            temperature *= self.cooling_rate
+            if temperature < 1e-6: # Prevent division by zero or extremely small temperatures
+                temperature = 1e-6
+
+        return best_solution, best_energy
+
+# --- Example Usage ---
+def rosenbrock_function(x):
+    """The Rosenbrock function, a common optimization test function."""
+    return sum(100.0 * (x[i+1] - x[i]**2)**2 + (1 - x[i])**2 for i in range(len(x) - 1))
+
+if __name__ == "__main__":
+    # Define the search space for a 2D Rosenbrock function
+    search_space = [(-5, 5), (-5, 5)]
+
+    # Create and run the optimizer
+    optimizer = QuantumInspiredOptimizer(
+        objective_function=rosenbrock_function,
+        search_space=search_space,
+        initial_temperature=500.0,
+        cooling_rate=0.995,
+        iterations=5000
+    )
+    
+    best_solution, best_energy = optimizer.optimize()
+
+    print(f"Optimal solution found: {best_solution}")
+    print(f"Minimum energy (function value): {best_energy}")
