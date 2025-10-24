@@ -1,0 +1,78 @@
+class KnowledgeNode:
+    """Represents a single piece of information in the knowledge graph."""
+    def __init__(self, identifier, content, tags=None):
+        self.identifier = identifier  # Unique ID for the node
+        self.content = content      # The actual information
+        self.tags = tags if tags is not None else [] # Keywords for search
+        self.connections = []       # List of connected node identifiers
+
+    def add_connection(self, target_node_id):
+        """Establishes a directed connection to another node."""
+        if target_node_id not in self.connections:
+            self.connections.append(target_node_id)
+
+    def __repr__(self):
+        return f"Node(ID: {self.identifier}, Content: '{self.content[:30]}...', Connections: {len(self.connections)})"
+
+class DecentralizedKnowledgeGraph:
+    """Manages the collection of KnowledgeNodes."""
+    def __init__(self):
+        self.nodes = {} # Stores nodes by their identifier
+
+    def add_node(self, identifier, content, tags=None):
+        """Adds a new KnowledgeNode to the graph."""
+        if identifier in self.nodes:
+            raise ValueError(f"Node with ID '{identifier}' already exists.")
+        new_node = KnowledgeNode(identifier, content, tags)
+        self.nodes[identifier] = new_node
+        return new_node
+
+    def get_node(self, identifier):
+        """Retrieves a KnowledgeNode by its identifier."""
+        return self.nodes.get(identifier)
+
+    def connect_nodes(self, source_id, target_id):
+        """Connects two existing nodes."""
+        source_node = self.get_node(source_id)
+        target_node = self.get_node(target_id)
+        if not source_node:
+            raise ValueError(f"Source node with ID '{source_id}' not found.")
+        if not target_node:
+            raise ValueError(f"Target node with ID '{target_id}' not found.")
+        source_node.add_connection(target_id)
+
+    def search_by_tag(self, tag):
+        """Finds nodes that contain a specific tag."""
+        results = []
+        for node in self.nodes.values():
+            if tag in node.tags:
+                results.append(node)
+        return results
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    graph = DecentralizedKnowledgeGraph()
+
+    # Add some nodes
+    node1 = graph.add_node("py-intro", "Python is a high-level, interpreted programming language.", ["python", "programming"])
+    node2 = graph.add_node("ml-basics", "Machine learning is a field of artificial intelligence.", ["ml", "ai"])
+    node3 = graph.add_node("data-science", "Data science combines statistics, computer science, and domain knowledge.", ["data", "science"])
+    node4 = graph.add_node("ai-ethics", "Ethical considerations in artificial intelligence.", ["ai", "ethics"])
+
+    # Connect nodes
+    graph.connect_nodes("py-intro", "ml-basics")
+    graph.connect_nodes("ml-basics", "data-science")
+    graph.connect_nodes("ai-ethics", "ml-basics")
+
+    # Search and display
+    print("Nodes tagged with 'ai':")
+    for node in graph.search_by_tag("ai"):
+        print(node)
+
+    print("\nConnections from 'py-intro':")
+    py_intro_node = graph.get_node("py-intro")
+    if py_intro_node:
+        for conn_id in py_intro_node.connections:
+            connected_node = graph.get_node(conn_id)
+            if connected_node:
+                print(f"- Connected to: {connected_node.content[:30]}...")
