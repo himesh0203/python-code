@@ -1,0 +1,79 @@
+import random
+import math
+
+def calculate_energy(solution, Q_matrix):
+    """Calculates the energy of a given binary solution for a QUBO problem."""
+    energy = 0
+    n = len(solution)
+    for i in range(n):
+        for j in range(n):
+            energy += Q_matrix[i][j] * solution[i] * solution[j]
+    return energy
+
+def quantum_annealing_simulation(Q_matrix, num_iterations=1000, initial_temperature=1.0, final_temperature=0.01, cooling_rate=0.99):
+    """
+    Simulates a simplified quantum annealing process to find the ground state of a QUBO problem.
+    This simulation is a classical approximation and does not represent true quantum mechanics.
+    """
+    n = len(Q_matrix)
+    current_solution = [random.randint(0, 1) for _ in range(n)]
+    best_solution = list(current_solution)
+    current_energy = calculate_energy(current_solution, Q_matrix)
+    best_energy = current_energy
+    temperature = initial_temperature
+
+    for iteration in range(num_iterations):
+        if temperature < final_temperature:
+            break
+
+        # Propose a new solution by flipping a random bit
+        new_solution = list(current_solution)
+        flip_index = random.randint(0, n - 1)
+        new_solution[flip_index] = 1 - new_solution[flip_index]
+        new_energy = calculate_energy(new_solution, Q_matrix)
+
+        # Acceptance probability based on simulated annealing
+        if new_energy < current_energy or random.random() < math.exp((current_energy - new_energy) / temperature):
+            current_solution = new_solution
+            current_energy = new_energy
+
+        if current_energy < best_energy:
+            best_energy = current_energy
+            best_solution = list(current_solution)
+
+        temperature *= cooling_rate
+
+    return best_solution, best_energy
+
+if __name__ == "__main__":
+    # Example QUBO matrix (representing a simple problem)
+    # This matrix defines the interactions between binary variables.
+    # For a problem with N variables, Q_matrix will be N x N.
+    # For instance, a 3-variable problem:
+    # Q = [[q11, q12, q13],
+    #      [q21, q22, q23],
+    #      [q31, q32, q33]]
+    Q_matrix_example = [
+        [1, -2, 0],
+        [-2, 3, -1],
+        [0, -1, 2]
+    ]
+
+    print("Starting Quantum Annealing Simulation for QUBO...")
+    final_solution, min_energy = quantum_annealing_simulation(Q_matrix_example, num_iterations=5000)
+
+    print(f"\nOptimal Solution Found: {final_solution}")
+    print(f"Minimum Energy: {min_energy}")
+
+    # Another example with more variables
+    Q_matrix_large = [
+        [2, -1, 0, 1],
+        [-1, 3, -2, 0],
+        [0, -2, 4, -1],
+        [1, 0, -1, 2]
+    ]
+    print("\nStarting Quantum Annealing Simulation for a larger QUBO...")
+    final_solution_large, min_energy_large = quantum_annealing_simulation(Q_matrix_large, num_iterations=10000, initial_temperature=5.0)
+
+    print(f"\nOptimal Solution Found (Large): {final_solution_large}")
+    print(f"Minimum Energy (Large): {min_energy_large}")
