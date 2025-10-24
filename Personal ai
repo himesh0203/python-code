@@ -1,0 +1,39 @@
+class PersonalAI:
+    def __init__(self):
+        self.knowledge_base = {}
+
+    def learn(self, user_input, response):
+        """Adds a new fact to the AI's knowledge base."""
+        self.knowledge_base[user_input.lower()] = response
+
+    def get_response(self, user_query):
+        """Retrieves a response based on the query, or asks to learn."""
+        query_lower = user_query.lower()
+        if query_lower in self.knowledge_base:
+            return self.knowledge_base[query_lower]
+        else:
+            return "I don't know about that yet. Can you tell me what to say?"
+
+    def start_conversation(self):
+        """Initiates an interactive conversation with the AI."""
+        print("Hello! I am your personal learning AI. Ask me anything, or teach me something new.")
+        while True:
+            user_query = input("You: ")
+            if user_query.lower() == "exit":
+                print("Goodbye!")
+                break
+
+            response = self.get_response(user_query)
+            print(f"AI: {response}")
+
+            if response == "I don't know about that yet. Can you tell me what to say?":
+                new_response = input("AI: What should I say for that? ")
+                self.learn(user_query, new_response)
+                print("AI: Thanks for teaching me!")
+
+# Create an instance of the AI and start the conversation
+if __name__ == "__main__":
+    my_ai = PersonalAI()
+    my_ai.learn("what is your name", "My name is PersonalAI.")
+    my_ai.learn("how are you", "I am doing great, thank you for asking!")
+    my_ai.start_conversation()
