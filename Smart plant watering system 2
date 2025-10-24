@@ -1,0 +1,66 @@
+import time
+
+class SmartPlantWateringSystem:
+    """
+    Simulates a smart plant watering system that monitors soil moisture
+    and waters plants automatically.
+    """
+
+    def __init__(self, plant_name, watering_threshold=50):
+        """
+        Initializes the watering system for a specific plant.
+
+        Args:
+            plant_name (str): The name of the plant.
+            watering_threshold (int): The moisture level below which the plant needs watering.
+        """
+        self.plant_name = plant_name
+        self.watering_threshold = watering_threshold
+        self.soil_moisture = 75  # Initial simulated soil moisture level
+
+    def get_soil_moisture(self):
+        """
+        Simulates reading the current soil moisture level.
+        In a real system, this would come from a sensor.
+        """
+        # Simulate a gradual decrease in moisture over time
+        self.soil_moisture -= 5
+        if self.soil_moisture < 0:
+            self.soil_moisture = 0
+        return self.soil_moisture
+
+    def needs_watering(self):
+        """
+        Checks if the plant needs watering based on the current soil moisture.
+        """
+        current_moisture = self.get_soil_moisture()
+        print(f"[{self.plant_name}] Current soil moisture: {current_moisture}%")
+        return current_moisture < self.watering_threshold
+
+    def water_plant(self):
+        """
+        Simulates watering the plant, increasing its soil moisture.
+        """
+        print(f"[{self.plant_name}] Watering the plant...")
+        self.soil_moisture = 100  # Reset moisture to full after watering
+        print(f"[{self.plant_name}] Plant watered. New soil moisture: {self.soil_moisture}%")
+
+    def run_cycle(self):
+        """
+        Runs a single monitoring and watering cycle.
+        """
+        if self.needs_watering():
+            self.water_plant()
+        else:
+            print(f"[{self.plant_name}] No watering needed at this time.")
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    my_plant = SmartPlantWateringSystem("Ficus Benjamina", watering_threshold=40)
+
+    print("--- Starting Plant Monitoring Simulation ---")
+    for i in range(5):
+        print(f"\n--- Cycle {i+1} ---")
+        my_plant.run_cycle()
+        time.sleep(1) # Simulate time passing between cycles
+    print("\n--- Simulation Complete ---")
