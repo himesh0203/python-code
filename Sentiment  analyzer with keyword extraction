@@ -1,0 +1,54 @@
+import re
+from collections import Counter
+
+class AdvancedSentimentAnalyzer:
+    def __init__(self):
+        # Basic sentiment lexicon (can be expanded significantly)
+        self.positive_words = {"good", "great", "excellent", "happy", "love", "amazing", "fantastic"}
+        self.negative_words = {"bad", "poor", "terrible", "sad", "hate", "awful", "disappointing"}
+        self.neutral_words = {"the", "a", "is", "and", "but", "it", "to", "of", "in", "for"} # Common stopwords
+
+    def _preprocess_text(self, text):
+        # Convert to lowercase and remove punctuation
+        text = text.lower()
+        text = re.sub(r'[^\w\s]', '', text)
+        return text.split()
+
+    def analyze_sentiment(self, text):
+        words = self._preprocess_text(text)
+        positive_score = sum(1 for word in words if word in self.positive_words)
+        negative_score = sum(1 for word in words if word in self.negative_words)
+
+        if positive_score > negative_score:
+            return "Positive"
+        elif negative_score > positive_score:
+            return "Negative"
+        else:
+            return "Neutral"
+
+    def extract_keywords(self, text, num_keywords=5):
+        words = self._preprocess_text(text)
+        # Filter out stopwords and count word frequencies
+        filtered_words = [word for word in words if word not in self.neutral_words and len(word) > 2]
+        word_counts = Counter(filtered_words)
+        # Return the most common words
+        return [word for word, count in word_counts.most_common(num_keywords)]
+
+# Example Usage:
+analyzer = AdvancedSentimentAnalyzer()
+
+text_input_1 = "This product is absolutely amazing and works great! I love it."
+sentiment_1 = analyzer.analyze_sentiment(text_input_1)
+keywords_1 = analyzer.extract_keywords(text_input_1)
+
+print(f"Text 1: '{text_input_1}'")
+print(f"Sentiment: {sentiment_1}")
+print(f"Keywords: {keywords_1}\n")
+
+text_input_2 = "The service was terrible and very disappointing. I hate the experience."
+sentiment_2 = analyzer.analyze_sentiment(text_input_2)
+keywords_2 = analyzer.extract_keywords(text_input_2)
+
+print(f"Text 2: '{text_input_2}'")
+print(f"Sentiment: {sentiment_2}")
+print(f"Keywords: {keywords_2}")
