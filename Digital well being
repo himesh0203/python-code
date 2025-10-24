@@ -1,0 +1,73 @@
+import time
+import datetime
+from collections import defaultdict
+
+class DigitalWellbeingAssistant:
+    def __init__(self):
+        self.app_usage_data = defaultdict(lambda: {'duration': 0, 'access_count': 0})
+        self.notification_data = defaultdict(int)
+        self.goals = {}
+        self.start_time = time.time()
+
+    def record_app_usage(self, app_name, duration_seconds):
+        """Records the duration and access count for a specific application."""
+        self.app_usage_data[app_name]['duration'] += duration_seconds
+        self.app_usage_data[app_name]['access_count'] += 1
+
+    def record_notification(self, app_name):
+        """Records a notification received from a specific application."""
+        self.notification_data[app_name] += 1
+
+    def set_wellbeing_goal(self, goal_type, target_value, app_name=None):
+        """Sets a personalized digital wellbeing goal."""
+        self.goals[goal_type] = {'target': target_value, 'app': app_name}
+
+    def analyze_habits(self):
+        """Analyzes recorded data and provides insights and recommendations."""
+        print("\n--- Digital Wellbeing Report ---")
+        
+        # App Usage Analysis
+        print("\nApp Usage Summary:")
+        sorted_apps = sorted(self.app_usage_data.items(), key=lambda item: item[1]['duration'], reverse=True)
+        for app, data in sorted_apps:
+            print(f"- {app}: {data['duration']:.0f} seconds, {data['access_count']} accesses")
+
+        # Notification Analysis
+        print("\nNotification Summary:")
+        sorted_notifications = sorted(self.notification_data.items(), key=lambda item: item[1], reverse=True)
+        for app, count in sorted_notifications:
+            print(f"- {app}: {count} notifications")
+
+        # Goal Progress (simplified example)
+        print("\nGoal Progress:")
+        if 'screen_time_limit' in self.goals:
+            current_total_screen_time = sum(data['duration'] for data in self.app_usage_data.values())
+            target = self.goals['screen_time_limit']['target']
+            print(f"- Screen Time Limit ({target}s): Current total is {current_total_screen_time:.0f}s. {'On track!' if current_total_screen_time <= target else 'Exceeded!'}")
+
+        # Recommendations (simplified example)
+        print("\nRecommendations:")
+        if sorted_apps and sorted_apps[0][1]['duration'] > 3600: # If top app used for more than an hour
+            print(f"- Consider setting a time limit for {sorted_apps[0][0]} to improve focus.")
+        if sorted_notifications and sorted_notifications[0][1] > 20: # If an app sends many notifications
+            print(f"- Review notification settings for {sorted_notifications[0][0]} to reduce distractions.")
+
+# Example Usage:
+if __name__ == "__main__":
+    assistant = DigitalWellbeingAssistant()
+
+    # Simulate app usage and notifications
+    assistant.record_app_usage("SocialMediaApp", 1200) # 20 minutes
+    assistant.record_notification("SocialMediaApp")
+    assistant.record_notification("SocialMediaApp")
+    assistant.record_app_usage("WorkTool", 1800) # 30 minutes
+    assistant.record_notification("EmailClient")
+    assistant.record_app_usage("NewsFeed", 600) # 10 minutes
+    assistant.record_notification("NewsFeed")
+    assistant.record_notification("SocialMediaApp")
+
+    # Set a goal
+    assistant.set_wellbeing_goal("screen_time_limit", 3000) # 50 minutes total screen time
+
+    # Analyze and get recommendations
+    assistant.analyze_habits()
