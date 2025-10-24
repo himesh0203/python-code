@@ -1,0 +1,119 @@
+import random
+
+class QuantumNode:
+    """Represents a 'quantum' node in a pathfinding grid."""
+    def __init__(self, x, y, is_obstacle=False):
+        self.x = x
+        self.y = y
+        self.is_obstacle = is_obstacle
+        self.superposition = {}  # Stores probability of being on a path from a given source
+        self.entangled_paths = [] # Stores paths that pass through this node
+
+    def __repr__(self):
+        return f"QN({self.x},{self.y})"
+
+def initialize_grid(rows, cols, obstacle_density=0.2):
+    """Initializes a grid of QuantumNodes with random obstacles."""
+    grid = [[None for _ in range(cols)] for _ in range(rows)]
+    for r in range(rows):
+        for c in range(cols):
+            is_obstacle = random.random() < obstacle_density
+            grid[r][c] = QuantumNode(c, r, is_obstacle)
+    return grid
+
+def get_neighbors(node, grid):
+    """Returns valid neighbors of a given QuantumNode."""
+    neighbors = []
+    rows = len(grid)
+    cols = len(grid[0])
+    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)] # Right, Left, Down, Up
+
+    for dr, dc in directions:
+        nr, nc = node.y + dr, node.x + dc
+        if 0 <= nr < rows and 0 <= nc < cols and not grid[nr][nc].is_obstacle:
+            neighbors.append(grid[nr][nc])
+    return neighbors
+
+def quantum_path_propagation(grid, start_node, end_node, max_iterations=1000):
+    """
+    Simulates quantum-inspired path propagation.
+    Paths 'propagate' through the grid, and their probabilities are updated.
+    """
+    rows = len(grid)
+    cols = len(grid[0])
+
+    # Initial 'superposition' at the start node
+    start_node.superposition[id(start_node)] = 1.0 # 100% probability of being on a path from itself
+
+    # Simulate propagation
+    for _ in range(max_iterations):
+        new_superpositions = {}
+        for r in range(rows):
+            for c in range(cols):
+                current_node = grid[r][c]
+                if current_node.is_obstacle:
+                    continue
+
+                for source_id, prob in current_node.superposition.items():
+                    if prob > 0:
+                        neighbors = get_neighbors(current_node, grid)
+                        if neighbors:
+                            prob_per_neighbor = prob / len(neighbors)
+                            for neighbor in neighbors:
+                                if source_id not in new_superpositions:
+                                    new_superpositions[source_id] = {}
+                                new_superpositions[source_id][id(neighbor)] = \
+                                    new_superpositions[source_id].get(id(neighbor), 0.0) + prob_per_neighbor
+                        else: # Dead end or isolated node
+                            if source_id not in new_superpositions:
+                                new_superpositions[source_id] = {}
+                            new_superpositions[source_id][id(current_node)] = \
+                                new_superpositions[source_id].get(id(current_node), 0.0) + prob # Stays at current node if no path
+
+        # Update superpositions for the next iteration
+        for r in range(rows):
+            for c in range(cols):
+                current_node = grid[r][c]
+                current_node.superposition = {}
+                for source_id, node_probs in new_superpositions.items():
+                    if id(current_node) in node_probs:
+                        current_node.superposition[source_id] = node_probs[id(current_node)]
+
+    # 'Measurement' phase: find the path with highest probability to the end_node
+    # This is a simplification; a true quantum measurement would be more complex
+    final_path_prob = end_node.superposition.get(id(start_node), 0.0)
+    return final_path_prob > 0.0 # Returns True if a path with non-zero probability exists
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    rows, cols = 10, 10
+    grid = initialize_grid(rows, cols, obstacle_density=0.15)
+
+    start_node = grid[0][0]
+    end_node = grid[rows - 1][cols - 1]
+
+    # Ensure start and end are not obstacles
+    start_node.is_obstacle = False
+    end_node.is_obstacle = False
+
+    print(f"Attempting to find path from {start_node} to {end_node}...")
+    path_found = quantum_path_propagation(grid, start_node, end_node, max_iterations=500)
+
+    if path_found:
+        print("Path found with a non-zero quantum-inspired probability!")
+    else:
+        print("No path found with sufficient quantum-inspired probability.")
+
+    # Visualize the grid (optional, for local execution)
+    # for r in range(rows):
+    #     for c in range(cols):
+    #         node = grid[r][c]
+    #         if node == start_node:
+    #             print("S", end=" ")
+    #         elif node == end_node:
+    #             print("E", end=" ")
+    #         elif node.is_obstacle:
+    #             print("#", end=" ")
+    #         else:
+    #             print(".", end=" ")
+    #     print()
