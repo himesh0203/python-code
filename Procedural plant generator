@@ -1,0 +1,53 @@
+import random
+
+class CelestialBody:
+    """Base class for celestial bodies."""
+    def __init__(self, name):
+        self.name = name
+
+    def describe(self):
+        return f"This is a celestial body named {self.name}."
+
+class Planet(CelestialBody):
+    """Represents a procedurally generated planet."""
+    def __init__(self, name):
+        super().__init__(name)
+        self.atmosphere = self._generate_atmosphere()
+        self.terrain = self._generate_terrain()
+        self.life_forms = self._generate_life_forms()
+        self.resources = self._generate_resources()
+
+    def _generate_atmosphere(self):
+        atmospheres = ["dense oxygen-rich", "thin nitrogen-argon", "toxic methane", "no discernible", "exotic helium-neon"]
+        return random.choice(atmospheres)
+
+    def _generate_terrain(self):
+        terrains = ["vast deserts", "frozen tundras", "lush forests", "volcanic plains", "deep oceans", "craggy mountains"]
+        return random.sample(terrains, k=random.randint(1, 3)) # Select 1 to 3 distinct terrain types
+
+    def _generate_life_forms(self):
+        life_possibilities = ["primitive microbial life", "diverse flora and fauna", "sentient beings", "no known life", "bioluminescent organisms"]
+        return random.choice(life_possibilities)
+
+    def _generate_resources(self):
+        resources_list = ["rare minerals", "abundant water", "energy crystals", "precious gases", "no significant resources"]
+        return random.sample(resources_list, k=random.randint(1, 2))
+
+    def describe(self):
+        terrain_description = ", ".join(self.terrain)
+        resources_description = " and ".join(self.resources)
+        return (f"Planet {self.name} possesses a {self.atmosphere} atmosphere. "
+                f"Its surface is characterized by {terrain_description}. "
+                f"Observations suggest the presence of {self.life_forms}. "
+                f"The planet is known for its {resources_description}.")
+
+def generate_random_planet_name():
+    """Generates a semi-random planet name."""
+    prefixes = ["Xylos", "Aeris", "Chromos", "Nebula", "Terra"]
+    suffixes = ["Prime", "Minor", "Alpha", "Delta", "7"]
+    return f"{random.choice(prefixes)}-{random.randint(100, 999)}{random.choice(suffixes)}"
+
+if __name__ == "__main__":
+    planet_name = generate_random_planet_name()
+    new_planet = Planet(planet_name)
+    print(new_planet.describe())
