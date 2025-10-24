@@ -1,0 +1,80 @@
+import math
+import time
+import queue
+import threading
+
+class PrimeWorker:
+    """Simulates a worker in a distributed prime number generation system."""
+    def __init__(self, worker_id, start_num, end_num, result_queue):
+        self.worker_id = worker_id
+        self.start_num = start_num
+        self.end_num = end_num
+        self.result_queue = result_queue
+        self.primes = []
+
+    def is_prime(self, n):
+        if n < 2:
+            return False
+        if n % 2 == 0:
+            return n == 2
+        i = 3
+        while i * i <= n:
+            if n % i == 0:
+                return False
+            i += 2
+        return True
+
+    def run(self):
+        print(f"Worker {self.worker_id}: Starting prime search from {self.start_num} to {self.end_num}")
+        for num in range(self.start_num, self.end_num + 1):
+            if self.is_prime(num):
+                self.primes.append(num)
+        self.result_queue.put((self.worker_id, self.primes))
+        print(f"Worker {self.worker_id}: Finished. Found {len(self.primes)} primes.")
+
+def distributed_prime_finder(limit, num_workers):
+    """
+    Simulates a distributed prime number finder.
+    Divides the search space among multiple simulated workers (threads).
+    """
+    if limit < 2 or num_workers < 1:
+        raise ValueError("Limit must be at least 2, and num_workers at least 1.")
+
+    segment_size = (limit - 1) // num_workers # Adjust for 2 being the first prime
+    result_queue = queue.Queue()
+    threads = []
+    all_primes = set()
+
+    for i in range(num_workers):
+        start = 2 + i * segment_size
+        end = min(limit, 1 + (i + 1) * segment_size)
+        if i == num_workers - 1: # Ensure last worker covers the full range
+            end = limit
+
+        worker = PrimeWorker(i, start, end, result_queue)
+        thread = threading.Thread(target=worker.run)
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join() # Wait for all workers to complete
+
+    while not result_queue.empty():
+        worker_id, primes_found = result_queue.get()
+        all_primes.update(primes_found)
+
+    return sorted(list(all_primes))
+
+# --- Main execution ---
+if __name__ == "__main__":
+    search_limit = 100000 # Define the upper limit for prime search
+    worker_count = 8     # Define the number of simulated workers
+
+    print(f"Starting distributed prime search up to {search_limit} with {worker_count} workers...")
+    start_time = time.time()
+    found_primes = distributed_prime_finder(search_limit, worker_count)
+    end_time = time.time()
+
+    print(f"\nFound {len(found_primes)} primes up to {search_limit}.")
+    print(f"Time taken: {end_time - start_time:.4f} seconds.")
+    # print(f"Primes found: {found_primes[:50]}...") # Print first 50 primes for brevity
