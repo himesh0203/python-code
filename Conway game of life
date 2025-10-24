@@ -1,0 +1,109 @@
+import random
+
+class Cell:
+    """Represents a single cell in the automaton."""
+    def __init__(self, energy=10, species_id=None):
+        self.energy = energy
+        self.species_id = species_id if species_id is not None else random.randint(0, 9)
+        self.age = 0
+
+    def __repr__(self):
+        return f"C({self.species_id},{self.energy})"
+
+class CellularAutomaton:
+    """Simulates a self-organizing cellular automaton."""
+    def __init__(self, rows, cols, initial_density=0.3):
+        self.rows = rows
+        self.cols = cols
+        self.grid = [[None for _ in range(cols)] for _ in range(rows)]
+        self._initialize_grid(initial_density)
+
+    def _initialize_grid(self, density):
+        """Populates the grid with initial cells."""
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if random.random() < density:
+                    self.grid[r][c] = Cell()
+
+    def _get_neighbors(self, r, c):
+        """Returns a list of valid neighboring cell coordinates."""
+        neighbors = []
+        for dr in [-1, 0, 1]:
+            for dc in [-1, 0, 1]:
+                if dr == 0 and dc == 0:
+                    continue
+                nr, nc = r + dr, c + dc
+                if 0 <= nr < self.rows and 0 <= nc < self.cols:
+                    neighbors.append((nr, nc))
+        return neighbors
+
+    def _process_cell(self, r, c, new_grid):
+        """Applies rules to a single cell and updates the new grid."""
+        cell = self.grid[r][c]
+        if cell is None:
+            return
+
+        cell.age += 1
+        cell.energy -= 1 # Energy decay
+
+        if cell.energy <= 0: # Cell dies
+            return
+
+        neighbors_coords = self._get_neighbors(r, c)
+        living_neighbors = [(nr, nc) for nr, nc in neighbors_coords if self.grid[nr][nc] is not None]
+
+        # Energy transfer and reproduction
+        if living_neighbors:
+            # Transfer energy to a random weaker neighbor of the same species
+            same_species_neighbors = [
+                (nr, nc) for nr, nc in living_neighbors
+                if self.grid[nr][nc].species_id == cell.species_id and self.grid[nr][nc].energy < cell.energy
+            ]
+            if same_species_neighbors:
+                target_r, target_c = random.choice(same_species_neighbors)
+                transfer_amount = min(cell.energy // 2, self.grid[target_r][target_c].energy + 5) # Simple transfer rule
+                cell.energy -= transfer_amount
+                self.grid[target_r][target_c].energy += transfer_amount
+
+            # Attempt reproduction if enough energy and empty space
+            if cell.energy > 20: # Reproduction threshold
+                empty_neighbors = [(nr, nc) for nr, nc in neighbors_coords if self.grid[nr][nc] is None]
+                if empty_neighbors:
+                    spawn_r, spawn_c = random.choice(empty_neighbors)
+                    if new_grid[spawn_r][spawn_c] is None: # Only spawn if target is still empty in new_grid
+                        new_grid[spawn_r][spawn_c] = Cell(energy=cell.energy // 3, species_id=cell.species_id)
+                        cell.energy -= cell.energy // 3 # Energy cost for reproduction
+
+        new_grid[r][c] = cell # Carry over the updated cell
+
+    def evolve(self):
+        """Evolves the automaton by one generation."""
+        new_grid = [[None for _ in range(self.cols)] for _ in range(self.rows)]
+        for r in range(self.rows):
+            for c in range(self.cols):
+                self._process_cell(r, c, new_grid)
+        self.grid = new_grid
+
+    def display(self):
+        """Prints a simplified representation of the grid."""
+        for r in range(self.rows):
+            row_str = ""
+            for c in range(self.cols):
+                cell = self.grid[r][c]
+                if cell is None:
+                    row_str += " . "
+                else:
+                    row_str += f" {cell.species_id} "
+            print(row_str)
+        print("-" * (self.cols * 3))
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    automaton = CellularAutomaton(rows=10, cols=20, initial_density=0.4)
+    print("Initial State:")
+    automaton.display()
+
+    for generation in range(10):
+        print(f"Generation {generation + 1}:")
+        automaton.evolve()
+        automaton.display()
