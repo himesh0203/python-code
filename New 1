@@ -1,0 +1,69 @@
+def find_kth_in_two_sorted_arrays(arr1, arr2, k):
+    """
+    Finds the k-th smallest element in the union of two sorted arrays.
+
+    Args:
+        arr1 (list): The first sorted array.
+        arr2 (list): The second sorted array.
+        k (int): The desired k-th smallest element (1-indexed).
+
+    Returns:
+        int: The k-th smallest element.
+
+    Raises:
+        ValueError: If k is out of bounds.
+    """
+    if not (1 <= k <= len(arr1) + len(arr2)):
+        raise ValueError("k is out of bounds.")
+
+    def _find_kth(a, b, k_val):
+        len_a, len_b = len(a), len(b)
+
+        # Ensure 'a' is the shorter array for optimization
+        if len_a > len_b:
+            return _find_kth(b, a, k_val)
+
+        if len_a == 0:
+            return b[k_val - 1]
+        if k_val == 1:
+            return min(a[0], b[0])
+
+        # Divide k into two parts for partitioning
+        pa = min(k_val // 2, len_a)
+        pb = k_val - pa
+
+        if a[pa - 1] < b[pb - 1]:
+            return _find_kth(a[pa:], b, k_val - pa)
+        elif a[pa - 1] > b[pb - 1]:
+            return _find_kth(a, b[pb:], k_val - pb)
+        else:
+            return a[pa - 1]
+
+    return _find_kth(arr1, arr2, k)
+
+# Example Usage:
+if __name__ == "__main__":
+    arr_a = [1, 3, 5, 7, 9]
+    arr_b = [2, 4, 6, 8, 10]
+
+    # Find the 6th smallest element (which is 6)
+    k_value = 6
+    result = find_kth_in_two_sorted_arrays(arr_a, arr_b, k_value)
+    print(f"The {k_value}-th smallest element is: {result}")
+
+    # Find the 1st smallest element (which is 1)
+    k_value = 1
+    result = find_kth_in_two_sorted_arrays(arr_a, arr_b, k_value)
+    print(f"The {k_value}-st smallest element is: {result}")
+
+    # Find the 10th smallest element (which is 10)
+    k_value = 10
+    result = find_kth_in_two_sorted_arrays(arr_a, arr_b, k_value)
+    print(f"The {k_value}-th smallest element is: {result}")
+
+    # Example with different array lengths
+    arr_c = [10, 20, 30]
+    arr_d = [5, 15, 25, 35, 45]
+    k_value = 4
+    result = find_kth_in_two_sorted_arrays(arr_c, arr_d, k_value)
+    print(f"The {k_value}-th smallest element is: {result}") # Expected: 20
