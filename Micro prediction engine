@@ -1,0 +1,63 @@
+class MicroPredictionEngine:
+    """
+    A simple prediction engine that predicts the next element in a sequence
+    based on the most frequently occurring patterns.
+    """
+
+    def __init__(self, history_size=3):
+        """
+        Initializes the prediction engine.
+        :param history_size: The number of previous elements to consider for pattern recognition.
+        """
+        if not isinstance(history_size, int) or history_size < 1:
+            raise ValueError("history_size must be a positive integer.")
+        self.history_size = history_size
+        self.patterns = {}  # Stores patterns and their observed next elements
+
+    def observe(self, sequence):
+        """
+        Observes a sequence to learn patterns.
+        :param sequence: A list or tuple of elements representing the observed sequence.
+        """
+        if not isinstance(sequence, (list, tuple)) or len(sequence) < self.history_size + 1:
+            return  # Not enough data to form a pattern
+
+        for i in range(len(sequence) - self.history_size):
+            pattern = tuple(sequence[i : i + self.history_size])
+            next_element = sequence[i + self.history_size]
+
+            if pattern not in self.patterns:
+                self.patterns[pattern] = {}
+            self.patterns[pattern][next_element] = self.patterns[pattern].get(next_element, 0) + 1
+
+    def predict(self, current_sequence_segment):
+        """
+        Predicts the next element based on the current sequence segment.
+        :param current_sequence_segment: A list or tuple of elements representing the current segment.
+        :return: The predicted next element, or None if no clear prediction can be made.
+        """
+        if not isinstance(current_sequence_segment, (list, tuple)) or len(current_sequence_segment) != self.history_size:
+            raise ValueError(f"current_sequence_segment must be a list/tuple of size {self.history_size}.")
+
+        pattern = tuple(current_sequence_segment)
+        if pattern in self.patterns:
+            possible_next_elements = self.patterns[pattern]
+            # Find the element with the highest frequency
+            predicted_element = max(possible_next_elements, key=possible_next_elements.get)
+            return predicted_element
+        return None
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    predictor = MicroPredictionEngine(history_size=2)
+
+    # Observe some sequences
+    predictor.observe([1, 2, 3, 1, 2, 4, 1, 2, 3, 5])
+    predictor.observe(['a', 'b', 'c', 'a', 'b', 'd'])
+    predictor.observe([True, False, True, True, False, False])
+
+    # Make predictions
+    print(f"Prediction for [1, 2]: {predictor.predict([1, 2])}")
+    print(f"Prediction for ['a', 'b']: {predictor.predict(['a', 'b'])}")
+    print(f"Prediction for [True, False]: {predictor.predict([True, False])}")
+    print(f"Prediction for [9, 8]: {predictor.predict([9, 8])}") # No observed pattern
