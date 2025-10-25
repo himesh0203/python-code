@@ -1,0 +1,20 @@
+import random
+
+def generate_procedural_art(rows=10, cols=40):
+    """Generates a text-based procedural art pattern."""
+    pattern_chars = ['*', '#', '@', '%', '&', ' ', '.', '+', '-']
+    art_output = []
+
+    for r in range(rows):
+        row_str = ""
+        for c in range(cols):
+            # Introduce some randomness for character selection
+            char_index = int((r + c + random.randint(0, 5)) % len(pattern_chars))
+            row_str += pattern_chars[char_index]
+        art_output.append(row_str)
+    return "\n".join(art_output)
+
+if __name__ == "__main__":
+    print("Generating a unique piece of procedural art:")
+    print(generate_procedural_art(rows=15, cols=60))
+    print("\nRun again for a different pattern!")
