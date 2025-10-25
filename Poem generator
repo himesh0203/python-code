@@ -1,0 +1,53 @@
+import sys
+
+def create_self_referential_poem_generator():
+    """
+    Creates a generator that yields a self-referential poem line by line.
+    
+    This is a hard and new concept because it uses:
+    1.  A closure (`poem_state`) to remember the poem's history.
+    2.  `yield` to make it a generator, which is highly memory efficient.
+    3.  A unique combination of functional programming and statefulness.
+    """
+    history = []
+    
+    def poem_state():
+        if not history:
+            line = "The code begins its careful, metered prose."
+            history.append(line)
+            yield line
+        
+        while True:
+            last_line = history[-1]
+            words = last_line.split()
+            
+            # Use functional and conditional logic to generate the next line.
+            if len(words) % 2 == 0:
+                new_word = " ".join([w.upper() for w in words[:2]])
+            elif len(last_line) > 30:
+                new_word = last_line.replace('o', 'u')
+            else:
+                new_word = last_line.split()[-1][::-1] # Reverse the last word
+            
+            next_line = f"The previous verse, a mirror now, reflects {new_word}."
+            
+            if len(history) > 5:
+                # Add a self-referential twist after a few lines.
+                next_line = f"The fifth line speaks, echoing its own {history[4].split()[-1]}"
+
+            history.append(next_line)
+            yield next_line
+            
+            if len(history) > 10:
+                return # The generator stops after a set number of lines.
+
+    return poem_state()
+
+# Create the generator object
+poem_generator = create_self_referential_poem_generator()
+
+# Iterate through the generator and print the poem
+for line in poem_generator:
+    print(line)
+
+print("\n(The generation has concluded.)")
