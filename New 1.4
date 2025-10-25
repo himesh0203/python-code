@@ -1,0 +1,20 @@
+from functools import lru_cache
+from typing import Iterator
+
+@lru_cache(maxsize=None)
+def fib_memo(n: int) -> int:
+    """Recursively computes the nth Fibonacci number with memoization."""
+    if n <= 1:
+        return n
+    return fib_memo(n - 1) + fib_memo(n - 2)
+
+def fib_generator(limit: int) -> Iterator[int]:
+    """Generates Fibonacci numbers up to a limit using the memoized function."""
+    for i in range(limit):
+        yield fib_memo(i)
+
+# Example usage
+print("Fibonacci sequence up to 15:")
+for num in fib_generator(15):
+    print(num, end=" ")
+print("\n")
