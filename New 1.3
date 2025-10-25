@@ -1,0 +1,29 @@
+import asyncio
+
+async def state_a():
+    print("Entering State A")
+    await asyncio.sleep(1)
+    print("Exiting State A")
+    return "b"
+
+async def state_b():
+    print("Entering State B")
+    await asyncio.sleep(1)
+    print("Exiting State B")
+    return "a"
+
+async def state_machine():
+    state = "a"
+    print("Starting state machine...")
+    while True:
+        if state == "a":
+            state = await state_a()
+        elif state == "b":
+            state = await state_b()
+        if state not in ("a", "b"):
+            break
+
+# The entry point for the asyncio event loop
+print("Running coroutine state machine...")
+asyncio.run(state_machine())
+print("State machine finished.")
