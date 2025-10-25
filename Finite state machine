@@ -1,0 +1,89 @@
+import random
+
+class GameState:
+    """Represents a state in the game's finite state machine."""
+    def __init__(self, name, description, actions):
+        self.name = name
+        self.description = description
+        self.actions = actions  # Dictionary: {command: next_state_name}
+
+    def display_state(self):
+        print(f"\n--- {self.name.upper()} ---")
+        print(self.description)
+        print("Available actions:")
+        for action in self.actions:
+            print(f"- {action}")
+
+class TextAdventureGame:
+    """Manages the game's states and transitions."""
+    def __init__(self, states, initial_state_name):
+        self.states = {state.name: state for state in states}
+        self.current_state = self.states[initial_state_name]
+
+    def run(self):
+        while True:
+            self.current_state.display_state()
+            command = input("What do you do? ").lower().strip()
+
+            if command == "quit":
+                print("Exiting game. Goodbye!")
+                break
+
+            if command in self.current_state.actions:
+                next_state_name = self.current_state.actions[command]
+                if next_state_name in self.states:
+                    self.current_state = self.states[next_state_name]
+                else:
+                    print("Error: Invalid next state defined in game logic.")
+            else:
+                print("Invalid action. Try again.")
+
+# Define game states
+state_start = GameState(
+    "start",
+    "You awaken in a dimly lit cave. A faint light emanates from a passage to the east. A dark, ominous tunnel lies to the west.",
+    {"go east": "forest_edge", "go west": "dark_tunnel"}
+)
+
+state_forest_edge = GameState(
+    "forest_edge",
+    "You emerge from the cave into a dense forest. A winding path leads north, and the cave entrance is behind you.",
+    {"go north": "ancient_ruins", "go back": "start"}
+)
+
+state_dark_tunnel = GameState(
+    "dark_tunnel",
+    "The tunnel is cold and damp. You hear strange whispers in the darkness. A faint glow appears deeper within.",
+    {"proceed": "hidden_chamber", "retreat": "start"}
+)
+
+state_ancient_ruins = GameState(
+    "ancient_ruins",
+    "You arrive at the ruins of an ancient civilization. A pedestal stands in the center, seemingly empty.",
+    {"examine pedestal": "pedestal_examined", "go back": "forest_edge"}
+)
+
+state_pedestal_examined = GameState(
+    "pedestal_examined",
+    "Upon closer inspection, you find a hidden inscription on the pedestal. It reads: 'Seek the light within the darkness.'",
+    {"go back": "ancient_ruins"}
+)
+
+state_hidden_chamber = GameState(
+    "hidden_chamber",
+    "You discover a hidden chamber with a glowing orb. Taking the orb might have consequences.",
+    {"take orb": "game_end_win", "leave": "dark_tunnel"}
+)
+
+state_game_end_win = GameState(
+    "game_end_win",
+    "You take the glowing orb, and a warm energy fills you. You have found your purpose. (Game Over - You Win!)",
+    {} # No further actions
+)
+
+# Initialize and run the game
+game_states = [state_start, state_forest_edge, state_dark_tunnel, 
+               state_ancient_ruins, state_pedestal_examined, 
+               state_hidden_chamber, state_game_end_win]
+game = TextAdventureGame(game_states, "start")
+game.run()
