@@ -1,0 +1,111 @@
+import random
+import math
+
+class Individual:
+    """Represents an individual in the genetic algorithm population."""
+    def __init__(self, gene_length, min_val, max_val):
+        self.genes = [random.uniform(min_val, max_val) for _ in range(gene_length)]
+        self.fitness = 0.0
+
+    def calculate_fitness(self, target_function):
+        """Calculates the fitness of the individual based on a target function."""
+        # Example target function: minimize f(x, y) = (x-2)^2 + (y-3)^2
+        # For simplicity, assuming a 2-gene individual (x, y)
+        if len(self.genes) == 2:
+            x, y = self.genes[0], self.genes[1]
+            self.fitness = -((x - 2)**2 + (y - 3)**2) # Negative for maximization
+        else:
+            # More general fitness calculation for other target functions
+            self.fitness = -abs(target_function(self.genes)) # Example for minimizing value
+
+class GeneticAlgorithm:
+    """Implements a basic genetic algorithm for optimization."""
+    def __init__(self, population_size, gene_length, min_val, max_val,
+                 mutation_rate, generations):
+        self.population_size = population_size
+        self.gene_length = gene_length
+        self.min_val = min_val
+        self.max_val = max_val
+        self.mutation_rate = mutation_rate
+        self.generations = generations
+        self.population = []
+
+    def initialize_population(self):
+        """Creates the initial random population."""
+        self.population = [Individual(self.gene_length, self.min_val, self.max_val)
+                           for _ in range(self.population_size)]
+
+    def selection(self):
+        """Selects parents for reproduction using tournament selection."""
+        # Simple tournament selection (selects 2 random individuals and picks the better one)
+        parent1 = max(random.sample(self.population, 2), key=lambda ind: ind.fitness)
+        parent2 = max(random.sample(self.population, 2), key=lambda ind: ind.fitness)
+        return parent1, parent2
+
+    def crossover(self, parent1, parent2):
+        """Performs single-point crossover between two parents."""
+        child_genes = []
+        crossover_point = random.randint(1, self.gene_length - 1)
+        for i in range(self.gene_length):
+            if i < crossover_point:
+                child_genes.append(parent1.genes[i])
+            else:
+                child_genes.append(parent2.genes[i])
+        child = Individual(self.gene_length, self.min_val, self.max_val)
+        child.genes = child_genes
+        return child
+
+    def mutate(self, individual):
+        """Applies mutation to an individual's genes."""
+        for i in range(self.gene_length):
+            if random.random() < self.mutation_rate:
+                individual.genes[i] = random.uniform(self.min_val, self.max_val)
+
+    def run(self, target_function):
+        """Executes the genetic algorithm."""
+        self.initialize_population()
+
+        for generation in range(self.generations):
+            # Calculate fitness for all individuals
+            for individual in self.population:
+                individual.calculate_fitness(target_function)
+
+            # Sort population by fitness (descending)
+            self.population.sort(key=lambda ind: ind.fitness, reverse=True)
+
+            # Create new generation
+            new_population = [self.population[0], self.population[1]] # Keep elite individuals
+
+            while len(new_population) < self.population_size:
+                parent1, parent2 = self.selection()
+                child = self.crossover(parent1, parent2)
+                self.mutate(child)
+                new_population.append(child)
+
+            self.population = new_population
+
+        # Return the best individual found
+        self.population.sort(key=lambda ind: ind.fitness, reverse=True)
+        return self.population[0]
+
+# --- Example Usage ---
+def target_function_example(genes):
+    """A simple target function to minimize (e.g., for 2 genes)."""
+    x, y = genes[0], genes[1]
+    return (x - 2)**2 + (y - 3)**2
+
+if __name__ == "__main__":
+    ga = GeneticAlgorithm(
+        population_size=50,
+        gene_length=2,
+        min_val=-10,
+        max_val=10,
+        mutation_rate=0.1,
+        generations=100
+    )
+
+    best_solution = ga.run(target_function_example)
+
+    print(f"Best solution found: Genes = {best_solution.genes}")
+    print(f"Corresponding function value (minimized): {-best_solution.fitness}")
+    print(f"Expected minimum at x=2, y=3, value=0")
