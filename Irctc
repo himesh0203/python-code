@@ -1,0 +1,103 @@
+class Train:
+    def __init__(self, train_number, name, source, destination, total_seats):
+        self.train_number = train_number
+        self.name = name
+        self.source = source
+        self.destination = destination
+        self.total_seats = total_seats
+        self.available_seats = total_seats
+        self.bookings = []
+
+    def display_info(self):
+        print(f"Train Number: {self.train_number}")
+        print(f"Train Name: {self.name}")
+        print(f"Route: {self.source} to {self.destination}")
+        print(f"Available Seats: {self.available_seats}/{self.total_seats}")
+
+class Ticket:
+    ticket_counter = 1000
+
+    def __init__(self, passenger_name, train, num_seats):
+        self.pnr = f"PNR{Ticket.ticket_counter}"
+        Ticket.ticket_counter += 1
+        self.passenger_name = passenger_name
+        self.train = train
+        self.num_seats = num_seats
+        self.status = "Confirmed"
+
+    def display_ticket(self):
+        print("\n--- Ticket Details ---")
+        print(f"PNR: {self.pnr}")
+        print(f"Passenger Name: {self.passenger_name}")
+        print(f"Train: {self.train.name} ({self.train.train_number})")
+        print(f"Route: {self.train.source} to {self.train.destination}")
+        print(f"Number of Seats: {self.num_seats}")
+        print(f"Status: {self.status}")
+        print("----------------------")
+
+def book_ticket(trains):
+    print("\n--- Book a Ticket ---")
+    train_num = input("Enter Train Number: ")
+    selected_train = None
+    for train in trains:
+        if train.train_number == train_num:
+            selected_train = train
+            break
+
+    if selected_train:
+        selected_train.display_info()
+        if selected_train.available_seats > 0:
+            passenger_name = input("Enter Passenger Name: ")
+            num_seats = int(input("Enter Number of Seats to Book: "))
+
+            if num_seats <= selected_train.available_seats:
+                ticket = Ticket(passenger_name, selected_train, num_seats)
+                selected_train.bookings.append(ticket)
+                selected_train.available_seats -= num_seats
+                ticket.display_ticket()
+                print("Ticket booked successfully!")
+            else:
+                print("Not enough seats available.")
+        else:
+            print("Train is fully booked.")
+    else:
+        print("Train not found.")
+
+def view_bookings(trains):
+    print("\n--- View All Bookings ---")
+    found_bookings = False
+    for train in trains:
+        if train.bookings:
+            print(f"\nBookings for Train {train.name} ({train.train_number}):")
+            for booking in train.bookings:
+                booking.display_ticket()
+                found_bookings = True
+    if not found_bookings:
+        print("No bookings found.")
+
+def main():
+    # Sample Trains
+    trains = [
+        Train("12345", "Rajdhani Express", "Delhi", "Mumbai", 100),
+        Train("67890", "Shatabdi Express", "Mumbai", "Chennai", 50)
+    ]
+
+    while True:
+        print("\n--- IRCTC Booking System ---")
+        print("1. Book Ticket")
+        print("2. View All Bookings")
+        print("3. Exit")
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            book_ticket(trains)
+        elif choice == '2':
+            view_bookings(trains)
+        elif choice == '3':
+            print("Exiting system. Thank you!")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
