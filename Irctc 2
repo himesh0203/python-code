@@ -1,0 +1,236 @@
+import csv
+import json
+import os
+import random
+import time
+from datetime import datetime, timedelta
+
+class Train:
+    """Represents a train with its schedule, route, and seat availability."""
+    def __init__(self, train_number, name, source, destination, classes, total_seats_per_class):
+        self.train_number = train_number
+        self.name = name
+        self.source = source
+        self.destination = destination
+        self.classes = classes
+        self.total_seats_per_class = total_seats_per_class
+        self.schedule = {}  # {date: {class_type: available_seats}}
+
+    def update_schedule(self, date_str):
+        """Initializes seat availability for a given date if not already set."""
+        if date_str not in self.schedule:
+            self.schedule[date_str] = {
+                cls: self.total_seats_per_class.get(cls, 0)
+                for cls in self.classes
+            }
+
+    def check_availability(self, date_str, class_type, num_passengers):
+        """Checks if enough seats are available for a given date and class."""
+        self.update_schedule(date_str)
+        available = self.schedule.get(date_str, {}).get(class_type, 0)
+        return available >= num_passengers
+
+    def book_seats(self, date_str, class_type, num_passengers):
+        """Books seats and decrements the available seat count."""
+        if self.check_availability(date_str, class_type, num_passengers):
+            self.schedule[date_str][class_type] -= num_passengers
+            return True
+        return False
+
+class ReservationSystem:
+    """Core class to manage trains, passengers, and bookings."""
+    def __init__(self, trains_data_file="trains.json", bookings_data_file="bookings.csv"):
+        self.trains_data_file = trains_data_file
+        self.bookings_data_file = bookings_data_file
+        self.trains = {}
+        self.load_data()
+
+    def load_data(self):
+        """Loads train and booking data from files."""
+        if os.path.exists(self.trains_data_file):
+            with open(self.trains_data_file, 'r') as f:
+                trains_list = json.load(f)
+                for t_data in trains_list:
+                    train = Train(
+                        t_data['train_number'],
+                        t_data['name'],
+                        t_data['source'],
+                        t_data['destination'],
+                        t_data['classes'],
+                        t_data['total_seats_per_class']
+                    )
+                    train.schedule = t_data.get('schedule', {})
+                    self.trains[train.train_number] = train
+
+        if not os.path.exists(self.bookings_data_file):
+            with open(self.bookings_data_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    'PNR', 'Train Number', 'Train Name', 'Date', 'Class', 'Passengers'
+                ])
+
+    def save_data(self):
+        """Saves train data to a JSON file."""
+        trains_list = [
+            {
+                "train_number": t.train_number,
+                "name": t.name,
+                "source": t.source,
+                "destination": t.destination,
+                "classes": t.classes,
+                "total_seats_per_class": t.total_seats_per_class,
+                "schedule": t.schedule
+            }
+            for t in self.trains.values()
+        ]
+        with open(self.trains_data_file, 'w') as f:
+            json.dump(trains_list, f, indent=4)
+
+    def add_initial_trains(self):
+        """Populates the system with some initial train data."""
+        trains_to_add = [
+            Train("12029", "Shatabdi Express", "DELHI", "AMRITSAR", ["EC", "CC"], {"EC": 20, "CC": 100}),
+            Train("12423", "Rajdhani Express", "DELHI", "KOLKATA", ["1A", "2A", "3A"], {"1A": 50, "2A": 100, "3A": 200}),
+            Train("18610", "Ranchi Express", "RANCHI", "MUMBAI", ["SL", "3A"], {"SL": 300, "3A": 150})
+        ]
+        for train in trains_to_add:
+            self.trains[train.train_number] = train
+        self.save_data()
+
+    def search_trains(self, source, destination, date_str):
+        """Finds all trains matching the source, destination, and date."""
+        available_trains = []
+        for train in self.trains.values():
+            if train.source == source and train.destination == destination:
+                train.update_schedule(date_str)
+                available_trains.append(train)
+        return available_trains
+
+    def book_ticket(self, train, date_str, class_type, passengers):
+        """Books tickets for a list of passengers."""
+        num_passengers = len(passengers)
+        if train.book_seats(date_str, class_type, num_passengers):
+            pnr = self._generate_pnr()
+            self._write_booking_to_file(pnr, train, date_str, class_type, passengers)
+            self.save_data()
+            return pnr
+        return None
+
+    def get_booking_details(self, pnr):
+        """Retrieves booking details for a given PNR."""
+        with open(self.bookings_data_file, 'r', newline='') as f:
+            reader = csv.reader(f)
+            header = next(reader)
+            for row in reader:
+                if row and row[0] == pnr:
+                    return {
+                        header[i]: row[i] for i in range(len(header))
+                    }
+        return None
+
+    def _generate_pnr(self):
+        """Generates a unique PNR number."""
+        return str(random.randint(1000000000, 9999999999))
+
+    def _write_booking_to_file(self, pnr, train, date_str, class_type, passengers):
+        """Appends booking information to the CSV file."""
+        with open(self.bookings_data_file, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                pnr,
+                train.train_number,
+                train.name,
+                date_str,
+                class_type,
+                json.dumps([p['name'] for p in passengers])
+            ])
+
+def display_menu():
+    """Prints the main menu for the user."""
+    print("\n--- IRCTC Booking Simulation ---")
+    print("1. Search Trains")
+    print("2. Book a Ticket")
+    print("3. Check PNR Status")
+    print("4. Exit")
+
+def get_user_input(prompt):
+    """Gets user input with basic validation."""
+    return input(f"{prompt}: ").strip().upper()
+
+def main():
+    """Main function to run the booking simulation."""
+    system = ReservationSystem()
+    if not system.trains:
+        print("Initializing train data for the first time...")
+        system.add_initial_trains()
+
+    while True:
+        display_menu()
+        choice = get_user_input("Enter your choice")
+
+        if choice == '1':
+            source = get_user_input("Enter Source Station")
+            destination = get_user_input("Enter Destination Station")
+            date_str = get_user_input("Enter Date (YYYY-MM-DD)")
+            
+            try:
+                datetime.strptime(date_str, "%Y-%m-%d")
+            except ValueError:
+                print("Invalid date format. Please use YYYY-MM-DD.")
+                continue
+
+            trains = system.search_trains(source, destination, date_str)
+            if not trains:
+                print("No trains found for this route on the specified date.")
+            else:
+                print("\nAvailable Trains:")
+                for train in trains:
+                    print(f"Train No: {train.train_number}, Name: {train.name}")
+                    for cls in train.classes:
+                        available = train.schedule.get(date_str, {}).get(cls, 0)
+                        print(f"  - Class: {cls}, Available: {available}")
+
+        elif choice == '2':
+            train_number = get_user_input("Enter Train Number")
+            date_str = get_user_input("Enter Date (YYYY-MM-DD)")
+            class_type = get_user_input("Enter Class (e.g., 3A, SL)")
+            num_passengers = int(get_user_input("Enter number of passengers"))
+
+            train = system.trains.get(train_number)
+            if not train:
+                print("Invalid train number.")
+                continue
+
+            if train.check_availability(date_str, class_type, num_passengers):
+                passengers = []
+                for i in range(num_passengers):
+                    name = get_user_input(f"Enter passenger {i+1} name")
+                    passengers.append({"name": name})
+
+                pnr = system.book_ticket(train, date_str, class_type, passengers)
+                if pnr:
+                    print(f"\nBooking successful! Your PNR is: {pnr}")
+                else:
+                    print("Booking failed. Not enough seats.")
+            else:
+                print("Selected class is not available or does not have enough seats.")
+
+        elif choice == '3':
+            pnr = get_user_input("Enter PNR number")
+            booking = system.get_booking_details(pnr)
+            if booking:
+                print("\n--- Booking Details ---")
+                for key, value in booking.items():
+                    print(f"{key}: {value}")
+            else:
+                print("PNR not found.")
+
+        elif choice == '4':
+            print("Exiting. Goodbye!")
+            break
+        
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
