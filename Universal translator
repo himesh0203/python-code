@@ -1,0 +1,29 @@
+def universal_translator(text, target_language="Klingon"):
+    """
+    Simulates a very basic universal translator for a few predefined phrases.
+    """
+    translations = {
+        "Hello": {"Klingon": "nuqneH", "Elvish": "Suilad"},
+        "Goodbye": {"Klingon": "Qapla'", "Elvish": "Navaer"},
+        "Thank you": {"Klingon": "ghu'vam", "Elvish": "Hantanyel"},
+        "How are you?": {"Klingon": "nuqjatlh?", "Elvish": "Man eneth lín?"},
+        "I love you": {"Klingon": "qaparHa'", "Elvish": "Gi melin"},
+    }
+
+    # Normalize input text for case-insensitive matching
+    normalized_text = text.strip().capitalize()
+
+    if normalized_text in translations:
+        if target_language in translations[normalized_text]:
+            return f"Translated '{text}' to {target_language}: {translations[normalized_text][target_language]}"
+        else:
+            return f"Translation for '{text}' to {target_language} not available."
+    else:
+        return f"Phrase '{text}' not recognized for translation."
+
+# Example usage:
+print(universal_translator("Hello", "Klingon"))
+print(universal_translator("Thank you", "Elvish"))
+print(universal_translator("How are you?", "Romulan")) # Language not supported in this example
+print(universal_translator("Good morning")) # Phrase not recognized
+print(universal_translator("I love you", "Klingon"))
