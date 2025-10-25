@@ -1,0 +1,155 @@
+import random
+
+class City:
+    """Represents a city with x, y coordinates."""
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def distance(self, city):
+        """Calculates the Euclidean distance to another city."""
+        return ((self.x - city.x)**2 + (self.y - city.y)**2)**0.5
+
+    def __repr__(self):
+        return f"({self.x}, {self.y})"
+
+class Tour:
+    """Represents a potential solution (a tour of cities)."""
+    def __init__(self, cities):
+        self.cities = list(cities)  # Ensure a mutable copy
+        random.shuffle(self.cities) # Initialize with a random tour
+        self._fitness = 0.0
+        self._distance = 0.0
+
+    def get_distance(self):
+        """Calculates the total distance of the tour."""
+        if self._distance == 0:
+            total_distance = 0
+            for i in range(len(self.cities)):
+                from_city = self.cities[i]
+                to_city = self.cities[(i + 1) % len(self.cities)] # Connect back to start
+                total_distance += from_city.distance(to_city)
+            self._distance = total_distance
+        return self._distance
+
+    def get_fitness(self):
+        """Calculates the fitness of the tour (inverse of distance)."""
+        if self._fitness == 0:
+            self._fitness = 1 / float(self.get_distance())
+        return self._fitness
+
+    def __len__(self):
+        return len(self.cities)
+
+    def __getitem__(self, index):
+        return self.cities[index]
+
+    def __setitem__(self, key, value):
+        self.cities[key] = value
+        self._fitness = 0.0 # Reset fitness and distance on modification
+        self._distance = 0.0
+
+class Population:
+    """Manages a population of tours for the genetic algorithm."""
+    def __init__(self, tour_manager, population_size, initialize):
+        self.tours = []
+        for _ in range(population_size):
+            self.tours.append(Tour(tour_manager.all_cities))
+        self.tours.sort(key=lambda tour: tour.get_fitness(), reverse=True) # Sort by fitness
+
+    def get_fittest(self):
+        """Returns the fittest tour in the population."""
+        return self.tours[0]
+
+def crossover(parent1, parent2):
+    """Performs ordered crossover between two parent tours."""
+    child = Tour(parent1.cities) # Initialize child with parent1's cities
+    start_pos = int(random.random() * len(parent1))
+    end_pos = int(random.random() * len(parent1))
+
+    # Ensure start_pos is less than end_pos
+    if start_pos > end_pos:
+        start_pos, end_pos = end_pos, start_pos
+
+    # Copy segment from parent1 to child
+    for i in range(start_pos, end_pos):
+        child[i] = parent1[i]
+
+    # Fill remaining positions in child from parent2
+    parent2_index = 0
+    for i in range(len(parent1)):
+        if not (start_pos <= i < end_pos): # If position not filled by parent1 segment
+            while parent2[parent2_index] in child.cities[start_pos:end_pos]:
+                parent2_index += 1
+            child[i] = parent2[parent2_index]
+            parent2_index += 1
+    return child
+
+def mutate(tour, mutation_rate):
+    """Mutates a tour by swapping two cities."""
+    for tour_pos1 in range(len(tour)):
+        if random.random() < mutation_rate:
+            tour_pos2 = int(len(tour) * random.random())
+            city1 = tour[tour_pos1]
+            city2 = tour[tour_pos2]
+            tour[tour_pos2] = city1
+            tour[tour_pos1] = city2
+
+def evolve_population(population, mutation_rate):
+    """Evolves the population for one generation."""
+    new_population = Population(population.tours[0], 0, False) # Use the first tour's city list
+    new_population.tours = [] # Clear tours for new generation
+
+    # Elitism: keep the fittest tour
+    new_population.tours.append(population.get_fittest())
+
+    # Crossover and mutation
+    for i in range(1, len(population.tours)):
+        parent1 = select_parent(population)
+        parent2 = select_parent(population)
+        child = crossover(parent1, parent2)
+        mutate(child, mutation_rate)
+        new_population.tours.append(child)
+
+    new_population.tours.sort(key=lambda tour: tour.get_fitness(), reverse=True)
+    return new_population
+
+def select_parent(population):
+    """Selects a parent tour using tournament selection."""
+    tournament_size = 5
+    tournament = Population(population.tours[0], 0, False)
+    tournament.tours = [] # Clear tours for tournament
+    for _ in range(tournament_size):
+        random_id = int(random.random() * len(population.tours))
+        tournament.tours.append(population.tours[random_id])
+    return tournament.get_fittest()
+
+# --- Main execution ---
+if __name__ == "__main__":
+    # Create cities
+    cities = []
+    for _ in range(20): # 20 cities for a moderately complex problem
+        cities.append(City(random.randint(0, 200), random.randint(0, 200)))
+
+    # Set up the tour manager
+    class TourManager: # Simple class to hold all cities
+        def __init__(self, cities):
+            self.all_cities = cities
+    tour_manager = TourManager(cities)
+
+    # Initialize population
+    population_size = 50
+    population = Population(tour_manager, population_size, True)
+
+    print("Initial shortest distance:", population.get_fittest().get_distance())
+
+    # Evolve population
+    generations = 100
+    mutation_rate = 0.015
+    for i in range(generations):
+        population = evolve_population(population, mutation_rate)
+        if (i + 1) % 10 == 0:
+            print(f"Generation {i+1}: Fittest distance = {population.get_fittest().get_distance():.2f}")
+
+    print("\nFinal shortest distance:", population.get_fittest().get_distance())
+    print("Final tour:", population.get_fittest().cities)
