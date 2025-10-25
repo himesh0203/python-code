@@ -1,0 +1,97 @@
+import random
+import time
+
+class Question:
+    """Represents a single quiz question with multiple-choice options."""
+    def __init__(self, prompt, options, correct_answer_index):
+        self.prompt = prompt
+        self.options = options
+        self.correct_answer_index = correct_answer_index
+
+    def display(self):
+        """Displays the question and its options to the user."""
+        print(f"\n{self.prompt}")
+        for i, option in enumerate(self.options):
+            print(f"{i + 1}. {option}")
+
+    def check_answer(self, user_answer_index):
+        """Checks if the user's answer is correct."""
+        return user_answer_index == self.correct_answer_index
+
+class Quiz:
+    """Manages the quiz game flow, including questions, scoring, and user interaction."""
+    def __init__(self, questions):
+        self.questions = questions
+        self.score = 0
+        self.total_questions = len(questions)
+        self.incorrect_answers = []
+
+    def run_quiz(self):
+        """Executes the main quiz game loop."""
+        print("Welcome to the Advanced Python Quiz!")
+        time.sleep(1)
+        print("Prepare to test your knowledge...")
+        time.sleep(2)
+
+        random.shuffle(self.questions)  # Randomize question order
+
+        for i, question in enumerate(self.questions):
+            question.display()
+            while True:
+                try:
+                    user_input = input("Enter your answer (1, 2, 3, or 4): ")
+                    user_choice = int(user_input) - 1  # Adjust for 0-based indexing
+                    if 0 <= user_choice < len(question.options):
+                        break
+                    else:
+                        print("Invalid option. Please enter a number corresponding to an option.")
+                except ValueError:
+                    print("Invalid input. Please enter a number.")
+
+            if question.check_answer(user_choice):
+                print("Correct!")
+                self.score += 1
+            else:
+                print(f"Incorrect. The correct answer was: {question.options[question.correct_answer_index]}")
+                self.incorrect_answers.append(
+                    (question.prompt, question.options[question.correct_answer_index], question.options[user_choice] if 0 <= user_choice < len(question.options) else "Invalid Answer")
+                )
+            time.sleep(0.5)
+
+        self._display_results()
+
+    def _display_results(self):
+        """Displays the final quiz results and incorrect answers."""
+        print("\n--- Quiz Completed! ---")
+        print(f"Your final score: {self.score}/{self.total_questions}")
+
+        if self.incorrect_answers:
+            print("\n--- Review of Incorrect Answers ---")
+            for prompt, correct_ans, user_ans in self.incorrect_answers:
+                print(f"Question: {prompt}")
+                print(f"Correct Answer: {correct_ans}")
+                print(f"Your Answer: {user_ans}\n")
+
+# Define quiz questions
+quiz_questions = [
+    Question("What is the Global Interpreter Lock (GIL) in Python?",
+             ["A mechanism for thread synchronization", "A type of data structure", "A security feature", "A garbage collection algorithm"],
+             0),
+    Question("Which of the following is NOT a built-in data type in Python?",
+             ["List", "Tuple", "Array", "Dictionary"],
+             2),
+    Question("What does the 'yield' keyword do in Python?",
+             ["Returns a value and terminates the function", "Creates a generator function", "Handles exceptions", "Imports a module"],
+             1),
+    Question("In Python, what is the purpose of a decorator?",
+             ["To define a new class", "To modify or enhance a function or method", "To create a loop", "To declare a variable"],
+             1),
+    Question("Which of these is used for memory management in Python?",
+             ["Garbage collection", "Manual memory allocation", "Stack allocation", "Heap allocation"],
+             0)
+]
+
+# Create and run the quiz
+if __name__ == "__main__":
+    my_quiz = Quiz(quiz_questions)
+    my_quiz.run_quiz()
