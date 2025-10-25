@@ -1,0 +1,83 @@
+from types import MethodType
+
+class MetaDynamic(type):
+    """
+    A metaclass that creates a dynamic object capable of
+    generating and removing methods at runtime.
+    """
+    def __new__(mcs, name, bases, dct):
+        # Create a new class with standard dictionary and methods.
+        cls = super().__new__(mcs, name, bases, dct)
+        
+        # Add methods to dynamically add and remove features.
+        def learn_feature(self, name, implementation):
+            """Dynamically adds a new method to the object."""
+            new_method = MethodType(implementation, self)
+            setattr(self, name, new_method)
+            print(f"'{self}' has learned the feature: '{name}'")
+
+        def forget_feature(self, name):
+            """Dynamically removes a method from the object."""
+            if hasattr(self, name) and not name.startswith('_'):
+                delattr(self, name)
+                print(f"'{self}' has forgotten the feature: '{name}'")
+            else:
+                print(f"'{self}' does not know the feature: '{name}'")
+
+        cls.learn = learn_feature
+        cls.forget = forget_feature
+        return cls
+
+class DynamicObject(metaclass=MetaDynamic):
+    """
+    An empty base class that inherits the dynamic behavior
+    from its metaclass.
+    """
+    def __init__(self, name):
+        self._name = name
+    
+    def __repr__(self):
+        return f'DynamicObject(name="{self._name}")'
+
+def sing_implementation(self):
+    return f"{self._name} is singing a tune!"
+
+def dance_implementation(self):
+    return f"{self._name} is dancing the cha-cha!"
+
+# --- Execution ---
+if __name__ == "__main__":
+    print("--- Creating dynamic objects ---")
+    
+    # Create two instances of our dynamic object.
+    creature1 = DynamicObject("Leo")
+    creature2 = DynamicObject("Bella")
+
+    print("\n--- Creature 1 learns and uses a new skill ---")
+    creature1.learn("sing", sing_implementation)
+    print(creature1.sing())
+
+    print("\n--- Creature 2 learns a different skill ---")
+    creature2.learn("dance", dance_implementation)
+    print(creature2.dance())
+
+    print("\n--- Both creatures now have different capabilities ---")
+    try:
+        print("Leo tries to dance:")
+        creature1.dance()
+    except AttributeError as e:
+        print(f"Error: {e}. As expected, Leo cannot dance.")
+
+    try:
+        print("\nBella tries to sing:")
+        creature2.sing()
+    except AttributeError as e:
+        print(f"Error: {e}. As expected, Bella cannot sing.")
+
+    print("\n--- Creature 1 forgets a skill and learns a new one ---")
+    creature1.forget("sing")
+    creature1.learn("dance", dance_implementation)
+    print(creature1.dance())
+    
+    print("\n--- Self-documentation of new methods ---")
+    print(f"Documentation for the 'dance' method: {creature1.dance.__doc__}")
