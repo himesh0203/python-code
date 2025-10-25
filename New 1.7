@@ -1,0 +1,77 @@
+import functools
+
+# Define a decorator that adds a "history rule" to a generator function.
+def add_history_rule(history_rule):
+    """
+    A decorator that extends a cellular automaton's update rule
+    by checking its own history of state transitions.
+    """
+    def decorator(generator_func):
+        @functools.wraps(generator_func)
+        def wrapper(*args, **kwargs):
+            # A closure to capture the generator state and history.
+            history = []
+            gen = generator_func(*args, **kwargs)
+            
+            def new_gen():
+                # A generator that modifies its behavior based on its history.
+                nonlocal history
+                try:
+                    state = next(gen)
+                    while True:
+                        history.append(state)
+                        if history_rule(history):
+                            print("System has stabilized. Modifying behavior...")
+                            yield sum(state)  # New behavior: yield the sum of the state.
+                        else:
+                            yield state
+                        state = next(gen)
+                except StopIteration:
+                    return
+            
+            return new_gen()
+        return wrapper
+    return decorator
+
+# The core cellular automaton generator.
+@add_history_rule(lambda hist: len(hist) > 5 and all(x == hist[-1] for x in hist[-3:-1]))
+def cellular_automaton(initial_state):
+    """
+    A generator that simulates a simple cellular automaton.
+    Each state is a list of integers.
+    The next state is the sum of adjacent elements.
+    """
+    state = initial_state
+    while True:
+        yield state
+        # The next state is calculated based on the current state.
+        # This is the "basic rule" of the automaton.
+        next_state = [
+            (state[i - 1] + state[i] + state[(i + 1) % len(state)]) % 10
+            for i in range(len(state))
+        ]
+        if next_state == state:
+            # A generator can stop its iteration, a subtle point.
+            print("\nAutomaton has entered a repeating cycle. Stopping.")
+            return
+        state = next_state
+
+# The entry point of the script.
+if __name__ == '__main__':
+    # Initialize the automaton with an unusual state.
+    initial_config = [1, 0, 1, 0, 1]
+    
+    # Create an iterator from our decorated generator.
+    simulation = cellular_automaton(initial_config)
+
+    print(f"Starting with initial state: {initial_config}")
+    
+    try:
+        for i, state in enumerate(simulation):
+            print(f"Step {i}: {state}")
+            if i > 15:
+                print("Stopping after 15 steps to prevent infinite loop.")
+                break
+    except StopIteration:
+        print("Simulation ended.")
+
