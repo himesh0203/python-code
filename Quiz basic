@@ -1,0 +1,25 @@
+def run_quiz():
+    questions = {
+        "What is the capital of France?": "Paris",
+        "Which planet is known as the Red Planet?": "Mars",
+        "What is 5 + 3?": "8",
+        "Who painted the Mona Lisa?": "Leonardo da Vinci",
+        "What is the chemical symbol for water?": "H2O"
+    }
+
+    score = 0
+    print("Welcome to the Python Quiz Game!")
+
+    for question, correct_answer in questions.items():
+        user_answer = input(f"\n{question} ").strip()
+
+        if user_answer.lower() == correct_answer.lower():
+            print("Correct! ✅")
+            score += 1
+        else:
+            print(f"Wrong ❌ The correct answer is '{correct_answer}'.")
+
+    print(f"\nQuiz completed! You scored {score} out of {len(questions)}.")
+
+if __name__ == "__main__":
+    run_quiz()
