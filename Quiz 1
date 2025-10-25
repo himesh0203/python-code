@@ -1,0 +1,97 @@
+import random
+
+class Question:
+    """Represents a single quiz question with multiple-choice options."""
+    def __init__(self, question_text, options, correct_answer_index):
+        if not isinstance(question_text, str) or not question_text:
+            raise ValueError("Question text must be a non-empty string.")
+        if not isinstance(options, list) or len(options) < 2:
+            raise ValueError("Options must be a list with at least two elements.")
+        if not all(isinstance(opt, str) for opt in options):
+            raise ValueError("All options must be strings.")
+        if not isinstance(correct_answer_index, int) or not (0 <= correct_answer_index < len(options)):
+            raise ValueError("Correct answer index must be a valid index within options.")
+
+        self.question_text = question_text
+        self.options = options
+        self.correct_answer_index = correct_answer_index
+
+    def display_question(self):
+        """Prints the question and its options to the console."""
+        print(self.question_text)
+        for i, option in enumerate(self.options):
+            print(f"{i + 1}. {option}")
+
+    def check_answer(self, user_answer_index):
+        """Checks if the user's answer is correct."""
+        return user_answer_index == self.correct_answer_index
+
+class Quiz:
+    """Manages the quiz game flow, questions, and scoring."""
+    def __init__(self, questions, quiz_name="General Knowledge Quiz"):
+        if not isinstance(questions, list) or not all(isinstance(q, Question) for q in questions):
+            raise ValueError("Questions must be a list of Question objects.")
+        self.questions = questions
+        self.quiz_name = quiz_name
+        self.score = 0
+        self.answered_questions = []
+
+    def start_quiz(self):
+        """Initiates and runs the quiz game."""
+        print(f"Welcome to the {self.quiz_name}!")
+        random.shuffle(self.questions)  # Randomize question order
+
+        for i, question in enumerate(self.questions):
+            print(f"\n--- Question {i + 1} ---")
+            question.display_question()
+
+            while True:
+                try:
+                    user_input = input("Enter your answer (number): ").strip()
+                    user_answer_index = int(user_input) - 1
+                    if not (0 <= user_answer_index < len(question.options)):
+                        raise ValueError("Invalid option number.")
+                    break
+                except ValueError as e:
+                    print(f"Invalid input: {e}. Please enter a valid number corresponding to an option.")
+
+            self.answered_questions.append((question, user_answer_index))
+
+            if question.check_answer(user_answer_index):
+                print("Correct!")
+                self.score += 1
+            else:
+                print(f"Incorrect. The correct answer was: {question.options[question.correct_answer_index]}")
+
+        self.end_quiz()
+
+    def end_quiz(self):
+        """Displays the final score and a summary of results."""
+        print("\n--- Quiz Completed! ---")
+        print(f"Your final score: {self.score}/{len(self.questions)}")
+        print("\n--- Review of Answers ---")
+        for i, (question, user_answer_index) in enumerate(self.answered_questions):
+            status = "Correct" if question.check_answer(user_answer_index) else "Incorrect"
+            user_choice = question.options[user_answer_index]
+            correct_choice = question.options[question.correct_answer_index]
+            print(f"Q{i+1}: {question.question_text}")
+            print(f"Your answer: {user_choice} ({status})")
+            if status == "Incorrect":
+                print(f"Correct answer: {correct_choice}")
+            print("-" * 20)
+
+# Example Usage:
+if __name__ == "__main__":
+    # Define questions
+    q1 = Question("What is the capital of France?", ["Berlin", "Madrid", "Paris", "Rome"], 2)
+    q2 = Question("Which planet is known as the Red Planet?", ["Earth", "Mars", "Jupiter", "Venus"], 1)
+    q3 = Question("What is the largest ocean on Earth?", ["Atlantic", "Indian", "Arctic", "Pacific"], 3)
+    q4 = Question("Who wrote 'Romeo and Juliet'?", ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"], 1)
+    q5 = Question("What is the chemical symbol for water?", ["O2", "H2O", "CO2", "NaCl"], 1)
+
+    # Create a list of questions
+    quiz_questions = [q1, q2, q3, q4, q5]
+
+    # Create and start the quiz
+    my_quiz = Quiz(quiz_questions, "Python Programming Quiz")
+    my_quiz.start_quiz()
