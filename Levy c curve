@@ -1,0 +1,59 @@
+import turtle
+
+def levy_c_curve(t, length, depth):
+    """
+    Draws a Levy C curve recursively.
+
+    Args:
+        t (turtle.Turtle): The turtle object used for drawing.
+        length (int): The length of the current line segment.
+        depth (int): The current recursion depth.
+    """
+    if depth == 0:
+        t.forward(length)
+    else:
+        # Save the current state before the first recursive call.
+        t.left(45)
+        levy_c_curve(t, length / 1.414, depth - 1)
+        
+        # Restore and transform the state for the second recursive call.
+        t.right(90)
+        levy_c_curve(t, length / 1.414, depth - 1)
+        t.left(45)
+
+def main():
+    """
+    Main function to set up the drawing and initiate the fractal.
+    """
+    # Set up the turtle screen and object.
+    screen = turtle.Screen()
+    screen.setup(800, 600)
+    screen.title("Python Levy C Curve Fractal")
+    t = turtle.Turtle()
+    t.speed(0)  # Set the fastest drawing speed.
+    t.penup()
+    t.goto(-100, 0)
+    t.pendown()
+
+    # Get input from the user. You can also hardcode the values.
+    # The depth controls the complexity; a higher number is harder.
+    try:
+        recursion_depth = int(screen.textinput("Depth", "Enter recursion depth (e.g., 12):"))
+        if recursion_depth < 0:
+            recursion_depth = 0
+    except (ValueError, TypeError):
+        recursion_depth = 12
+
+    line_length = 200
+
+    # Draw the fractal.
+    t.pensize(2)
+    t.color("blue")
+    levy_c_curve(t, line_length, recursion_depth)
+
+    # Clean up and exit.
+    t.hideturtle()
+    screen.exitonclick()
+
+if __name__ == "__main__":
+    main()
