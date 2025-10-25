@@ -1,0 +1,46 @@
+class DigitalCompanion:
+    def __init__(self, name="Companion"):
+        self.name = name
+        self.preferences = {}
+        self.greetings = ["Hello", "Hi there", "Greetings"]
+        self.farewells = ["Goodbye", "See you later", "Farewell"]
+
+    def greet(self):
+        import random
+        print(f"{random.choice(self.greetings)}, I am {self.name}!")
+
+    def learn_preference(self, category, item):
+        if category not in self.preferences:
+            self.preferences[category] = []
+        if item not in self.preferences[category]:
+            self.preferences[category].append(item)
+        print(f"I've noted your preference for {item} in {category}.")
+
+    def recommend(self, category):
+        if category in self.preferences and self.preferences[category]:
+            import random
+            print(f"Based on your preferences in {category}, I recommend: {random.choice(self.preferences[category])}")
+        else:
+            print(f"I don't have enough data to recommend something in {category} yet.")
+
+    def say_goodbye(self):
+        import random
+        print(f"{random.choice(self.farewells)}!")
+
+# --- Simulation of Interaction ---
+if __name__ == "__main__":
+    my_companion = DigitalCompanion("Aura")
+    my_companion.greet()
+
+    print("\nTell me about your preferences:")
+    my_companion.learn_preference("food", "pizza")
+    my_companion.learn_preference("food", "sushi")
+    my_companion.learn_preference("movie_genre", "sci-fi")
+    my_companion.learn_preference("music_genre", "jazz")
+
+    print("\nLet's see what I can recommend:")
+    my_companion.recommend("food")
+    my_companion.recommend("movie_genre")
+    my_companion.recommend("books") # No preference learned yet
+
+    my_companion.say_goodbye()
