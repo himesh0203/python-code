@@ -1,0 +1,149 @@
+import random
+
+class Player:
+    def __init__(self, name):
+        self.name = name
+        self.health = 100
+        self.inventory = []
+        self.location = "starting_room"
+
+    def take_damage(self, amount):
+        self.health -= amount
+        if self.health <= 0:
+            return True  # Player is defeated
+        return False
+
+    def add_item(self, item):
+        self.inventory.append(item)
+        print(f"You picked up a {item}.")
+
+    def use_item(self, item_name):
+        if item_name in self.inventory:
+            self.inventory.remove(item_name)
+            return True
+        return False
+
+class Room:
+    def __init__(self, name, description, exits, items=None, puzzle=None):
+        self.name = name
+        self.description = description
+        self.exits = exits  # Dictionary: {"direction": "room_name"}
+        self.items = items if items is not None else []
+        self.puzzle = puzzle
+
+    def display_info(self):
+        print(f"\n--- {self.name} ---")
+        print(self.description)
+        if self.items:
+            print(f"You see: {', '.join(self.items)}")
+        print("Exits: " + ", ".join(self.exits.keys()))
+
+class Puzzle:
+    def __init__(self, description, correct_answer, reward_item=None):
+        self.description = description
+        self.correct_answer = correct_answer.lower()
+        self.solved = False
+        self.reward_item = reward_item
+
+    def attempt(self, player_answer):
+        if player_answer.lower() == self.correct_answer:
+            self.solved = True
+            return True
+        return False
+
+class Game:
+    def __init__(self):
+        self.rooms = self._create_rooms()
+        self.player = Player("Hero")
+
+    def _create_rooms(self):
+        rooms = {
+            "starting_room": Room(
+                "Starting Room",
+                "You are in a dimly lit chamber. A faint glow emanates from a passage to the north.",
+                {"north": "echoing_hall"},
+                items=["rusty key"]
+            ),
+            "echoing_hall": Room(
+                "Echoing Hall",
+                "A long, echoing hall. Strange whispers seem to follow you. Passages lead east and west.",
+                {"south": "starting_room", "east": "treasure_room", "west": "puzzle_chamber"}
+            ),
+            "treasure_room": Room(
+                "Treasure Room",
+                "Piles of gold glint in the light. A massive chest stands in the center.",
+                {"west": "echoing_hall"},
+                items=["gold coin"],
+                puzzle=Puzzle("What has an eye but cannot see?", "needle", "ancient map")
+            ),
+            "puzzle_chamber": Room(
+                "Puzzle Chamber",
+                "An eerie room with strange symbols on the walls. A pedestal stands in the middle.",
+                {"east": "echoing_hall"},
+                puzzle=Puzzle("I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?", "echo", "mystic amulet")
+            )
+        }
+        return rooms
+
+    def play(self):
+        print("Welcome to The Labyrinth of Echoes!")
+        print("Type 'help' for commands.")
+
+        while self.player.health > 0:
+            current_room = self.rooms[self.player.location]
+            current_room.display_info()
+
+            if current_room.puzzle and not current_room.puzzle.solved:
+                print(f"\n-- Puzzle Ahead! --\n{current_room.puzzle.description}")
+                puzzle_attempt = input("Your answer: ").strip()
+                if current_room.puzzle.attempt(puzzle_attempt):
+                    print("You solved the puzzle!")
+                    if current_room.puzzle.reward_item:
+                        self.player.add_item(current_room.puzzle.reward_item)
+                else:
+                    print("Incorrect answer. Try again or move on.")
+
+            command = input("> ").lower().split(maxsplit=1)
+            action = command[0]
+            args = command[1] if len(command) > 1 else ""
+
+            if action == "quit":
+                print("Exiting game. Goodbye!")
+                break
+            elif action == "help":
+                print("Commands: go [direction], take [item], inventory, use [item], look, quit")
+            elif action == "go":
+                if args in current_room.exits:
+                    self.player.location = current_room.exits[args]
+                else:
+                    print("You can't go that way.")
+            elif action == "take":
+                if args in current_room.items:
+                    self.player.add_item(args)
+                    current_room.items.remove(args)
+                else:
+                    print("That item is not here.")
+            elif action == "inventory":
+                if self.player.inventory:
+                    print(f"Inventory: {', '.join(self.player.inventory)}")
+                else:
+                    print("Your inventory is empty.")
+            elif action == "use":
+                if self.player.use_item(args):
+                    print(f"You used the {args}.")
+                    # Add specific item effects here if needed
+                else:
+                    print(f"You don't have a {args}.")
+            elif action == "look":
+                current_room.display_info()
+            else:
+                print("Invalid command.")
+
+            # Simple game over condition for demonstration
+            if self.player.health <= 0:
+                print("Your health reached zero. Game Over!")
+                break
+
+if __name__ == "__main__":
+    game = Game()
+    game.play()
