@@ -1,0 +1,133 @@
+import random
+
+class Player:
+    def __init__(self, name):
+        self.name = name
+        self.resources = {'wood': 100, 'stone': 50, 'gold': 20}
+        self.buildings = {'farm': 0, 'mine': 0, 'lumber_mill': 0}
+        self.population = 5
+        self.food = 50
+        self.happiness = 70
+
+    def get_resource(self, resource_type):
+        return self.resources.get(resource_type, 0)
+
+    def add_resource(self, resource_type, amount):
+        self.resources[resource_type] = self.resources.get(resource_type, 0) + amount
+
+    def spend_resource(self, resource_type, amount):
+        if self.resources.get(resource_type, 0) >= amount:
+            self.resources[resource_type] -= amount
+            return True
+        return False
+
+    def build(self, building_type):
+        costs = {'farm': {'wood': 20, 'stone': 10},
+                 'mine': {'wood': 15, 'stone': 25},
+                 'lumber_mill': {'wood': 30, 'stone': 5}}
+        if building_type not in costs:
+            print("Invalid building type.")
+            return False
+
+        cost = costs[building_type]
+        can_build = True
+        for resource, amount in cost.items():
+            if not self.spend_resource(resource, amount):
+                print(f"Not enough {resource} to build {building_type}.")
+                can_build = False
+                break
+        if can_build:
+            self.buildings[building_type] += 1
+            print(f"{building_type} built successfully!")
+            return True
+        return False
+
+    def update_turn(self):
+        # Resource generation
+        self.add_resource('wood', self.buildings['lumber_mill'] * 5 + self.population // 2)
+        self.add_resource('stone', self.buildings['mine'] * 3 + self.population // 4)
+        self.add_resource('gold', self.buildings['mine'] * 1 + self.buildings['farm'] // 3)
+
+        # Food consumption and population growth
+        self.food -= self.population
+        if self.food < 0:
+            self.population = max(1, self.population - abs(self.food) // 10)
+            self.food = 0
+            print("Population is starving! Population decreased.")
+        else:
+            self.add_resource('food', self.buildings['farm'] * 10)
+            if self.food > self.population * 2:
+                self.population += 1
+                print("Population increased!")
+
+        # Happiness
+        self.happiness += random.randint(-5, 5)
+        self.happiness = max(0, min(100, self.happiness)) # Clamp happiness between 0 and 100
+        if self.happiness < 30:
+            print("Low happiness! Watch out for rebellions.")
+
+        # Random events (simplified)
+        if random.random() < 0.1:
+            event_type = random.choice(['plague', 'good harvest', 'bandit raid'])
+            if event_type == 'plague':
+                lost_pop = self.population // 5
+                self.population -= lost_pop
+                print(f"A plague struck! Lost {lost_pop} population.")
+            elif event_type == 'good harvest':
+                self.add_resource('food', 50)
+                print("A good harvest blessed your lands!")
+            elif event_type == 'bandit raid':
+                lost_gold = self.resources['gold'] // 3
+                self.spend_resource('gold', lost_gold)
+                print(f"Bandits raided! Lost {lost_gold} gold.")
+
+class Game:
+    def __init__(self):
+        self.player = Player("Player 1")
+        self.turn = 1
+
+    def display_status(self):
+        print(f"\n--- Turn {self.turn} Status ---")
+        print(f"Resources: Wood={self.player.get_resource('wood')}, Stone={self.player.get_resource('stone')}, Gold={self.player.get_resource('gold')}, Food={self.player.food}")
+        print(f"Buildings: Farms={self.player.buildings['farm']}, Mines={self.player.buildings['mine']}, Lumber Mills={self.player.buildings['lumber_mill']}")
+        print(f"Population: {self.player.population}, Happiness: {self.player.happiness}%")
+        print("----------------------------")
+
+    def handle_command(self, command):
+        parts = command.lower().split()
+        if not parts:
+            return
+
+        action = parts[0]
+        if action == 'build':
+            if len(parts) > 1:
+                self.player.build(parts[1])
+            else:
+                print("Usage: build <building_type>")
+        elif action == 'status':
+            self.display_status()
+        elif action == 'end_turn':
+            self.player.update_turn()
+            self.turn += 1
+            print("Turn ended.")
+        elif action == 'help':
+            print("Available commands: build <farm|mine|lumber_mill>, status, end_turn, help, quit")
+        elif action == 'quit':
+            return False
+        else:
+            print("Unknown command. Type 'help' for available commands.")
+        return True
+
+    def run(self):
+        print("Welcome to Strategic Resource Management!")
+        print("Type 'help' for available commands.")
+        running = True
+        while running:
+            self.display_status()
+            command = input("Enter command: ")
+            running = self.handle_command(command)
+        print("Game Over!")
+
+if __name__ == "__main__":
+    game = Game()
+    game.run()
