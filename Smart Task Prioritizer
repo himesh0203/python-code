@@ -1,0 +1,67 @@
+from datetime import datetime, timedelta
+
+WORKDAY_START = datetime.strptime("09:00", "%H:%M")
+WORKDAY_END = datetime.strptime("18:00", "%H:%M")
+
+class Task:
+    def __init__(self, name, duration_min, deadline, priority):
+        self.name = name
+        self.duration = timedelta(minutes=duration_min)
+        self.deadline = deadline
+        self.priority = priority  # 1 = High, 2 = Medium, 3 = Low
+        self.scheduled_start = None
+        self.scheduled_end = None
+
+    def schedule(self, start_time):
+        self.scheduled_start = start_time
+        self.scheduled_end = start_time + self.duration
+
+    def is_overdue(self):
+        return datetime.now() > self.deadline
+
+    def __str__(self):
+        if self.scheduled_start:
+            return f"{self.name} | {self.scheduled_start.strftime('%H:%M')}–{self.scheduled_end.strftime('%H:%M')} | Priority {self.priority}"
+        elif self.is_overdue():
+            return f"{self.name} | ❌ Overdue | Priority {self.priority}"
+        else:
+            return f"{self.name} | ⚠️ Not Scheduled | Priority {self.priority}"
+
+class TaskScheduler:
+    def __init__(self):
+        self.tasks = []
+
+    def add_task(self, name, duration_min, deadline_str, priority):
+        deadline = datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
+        self.tasks.append(Task(name, duration_min, deadline, priority))
+
+    def schedule_tasks(self):
+        self.tasks.sort(key=lambda t: (t.priority, t.deadline))
+        current_time = WORKDAY_START
+
+        for task in self.tasks:
+            if task.is_overdue():
+                continue
+            proposed_end = current_time + task.duration
+            if proposed_end <= WORKDAY_END and proposed_end <= task.deadline:
+                task.schedule(current_time)
+                current_time = proposed_end
+
+    def report(self):
+        print("\n📋 Task Schedule Report:")
+        print("-" * 50)
+        for task in self.tasks:
+            print(f" - {task}")
+        print("-" * 50)
+
+# Sample usage
+scheduler = TaskScheduler()
+scheduler.add_task("Finish Proposal", 90, "2025-10-27 12:00", 1)
+scheduler.add_task("Team Meeting", 60, "2025-10-27 11:00", 2)
+scheduler.add_task("Code Review", 45, "2025-10-27 15:00", 2)
+scheduler.add_task("Lunch Break", 60, "2025-10-27 13:00", 3)
+scheduler.add_task("Client Call", 30, "2025-10-27 16:00", 1)
+scheduler.add_task("Submit Invoice", 20, "2025-10-26 18:00", 1)  # Overdue
+
+scheduler.schedule_tasks()
+scheduler.report()
