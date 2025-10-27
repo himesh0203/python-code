@@ -1,0 +1,99 @@
+import random
+
+class DAOSimulator:
+    def __init__(self, initial_members, initial_treasury, proposal_threshold):
+        self.members = {f"member_{i}": 100 for i in range(initial_members)} # Each member starts with 100 tokens
+        self.treasury = initial_treasury
+        self.proposal_threshold = proposal_threshold # Minimum tokens to submit a proposal
+        self.proposals = []
+        self.next_proposal_id = 0
+
+    def add_member(self, member_id, tokens):
+        if member_id not in self.members:
+            self.members[member_id] = tokens
+            print(f"{member_id} joined with {tokens} tokens.")
+        else:
+            print(f"{member_id} already exists.")
+
+    def submit_proposal(self, proposer_id, description, required_tokens):
+        if proposer_id in self.members and self.members[proposer_id] >= self.proposal_threshold:
+            proposal = {
+                "id": self.next_proposal_id,
+                "proposer": proposer_id,
+                "description": description,
+                "required_tokens": required_tokens,
+                "votes_for": 0,
+                "votes_against": 0,
+                "status": "pending"
+            }
+            self.proposals.append(proposal)
+            self.next_proposal_id += 1
+            print(f"Proposal '{description}' submitted by {proposer_id}.")
+        else:
+            print(f"{proposer_id} cannot submit a proposal (insufficient tokens or not a member).")
+
+    def vote_on_proposal(self, voter_id, proposal_id, vote_type):
+        if voter_id not in self.members:
+            print(f"{voter_id} is not a member and cannot vote.")
+            return
+
+        for proposal in self.proposals:
+            if proposal["id"] == proposal_id and proposal["status"] == "pending":
+                if vote_type == "for":
+                    proposal["votes_for"] += self.members[voter_id]
+                    print(f"{voter_id} voted FOR proposal {proposal_id}.")
+                elif vote_type == "against":
+                    proposal["votes_against"] += self.members[voter_id]
+                    print(f"{voter_id} voted AGAINST proposal {proposal_id}.")
+                else:
+                    print("Invalid vote type. Use 'for' or 'against'.")
+                return
+        print(f"Proposal {proposal_id} not found or not pending.")
+
+    def execute_proposal(self, proposal_id):
+        for proposal in self.proposals:
+            if proposal["id"] == proposal_id and proposal["status"] == "pending":
+                if proposal["votes_for"] > proposal["votes_against"]:
+                    if self.treasury >= proposal["required_tokens"]:
+                        self.treasury -= proposal["required_tokens"]
+                        proposal["status"] = "executed"
+                        print(f"Proposal {proposal_id} '{proposal['description']}' executed. Treasury: {self.treasury}")
+                    else:
+                        proposal["status"] = "failed (insufficient treasury)"
+                        print(f"Proposal {proposal_id} failed: Insufficient treasury.")
+                else:
+                    proposal["status"] = "failed (majority against)"
+                    print(f"Proposal {proposal_id} failed: Majority voted against.")
+                return
+        print(f"Proposal {proposal_id} not found or not pending.")
+
+    def get_dao_status(self):
+        print("\n--- DAO Status ---")
+        print(f"Treasury: {self.treasury}")
+        print("Members:")
+        for member, tokens in self.members.items():
+            print(f"  {member}: {tokens} tokens")
+        print("Proposals:")
+        for proposal in self.proposals:
+            print(f"  ID: {proposal['id']}, Proposer: {proposal['proposer']}, Desc: '{proposal['description']}', Status: {proposal['status']}, Votes For: {proposal['votes_for']}, Votes Against: {proposal['votes_against']}")
+        print("------------------")
+
+# --- Simulation ---
+dao = DAOSimulator(initial_members=3, initial_treasury=1000, proposal_threshold=50)
+
+dao.add_member("member_3", 150)
+dao.submit_proposal("member_0", "Fund a new marketing campaign", 200)
+dao.submit_proposal("member_1", "Develop a new feature", 300)
+dao.submit_proposal("member_3", "Community event funding", 100) # member_3 has enough tokens
+
+dao.vote_on_proposal("member_0", 0, "for")
+dao.vote_on_proposal("member_1", 0, "for")
+dao.vote_on_proposal("member_2", 0, "against") # member_2 has 100 tokens
+
+dao.vote_on_proposal("member_0", 1, "against")
+dao.vote_on_proposal("member_3", 1, "for")
+
+dao.execute_proposal(0)
+dao.execute_proposal(1)
+
+dao.get_dao_status()
