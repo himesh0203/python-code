@@ -1,0 +1,64 @@
+import random
+
+class SubjectLineGenerator:
+    def __init__(self):
+        self.templates = {
+            "formal": [
+                "Regarding your recent inquiry",
+                "Follow-up on our discussion",
+                "Important update from our team",
+                "Your requested information enclosed",
+                "Meeting confirmation and agenda"
+            ],
+            "casual": [
+                "Quick heads-up!",
+                "Just checking in",
+                "Thought you'd like this",
+                "Hey, got a minute?",
+                "Catch up soon?"
+            ],
+            "promotional": [
+                "Unlock your exclusive offer today!",
+                "Don't miss this limited deal",
+                "Your discount is waiting",
+                "New arrivals just dropped!",
+                "Special pricing ends soon"
+            ],
+            "urgent": [
+                "Action required: deadline approaching",
+                "Immediate attention needed",
+                "Final notice: respond today",
+                "Critical update inside",
+                "Time-sensitive opportunity"
+            ]
+        }
+
+    def detect_tone(self, description):
+        desc = description.lower()
+        if any(word in desc for word in ["meeting", "agenda", "update", "report"]):
+            return "formal"
+        elif any(word in desc for word in ["deal", "offer", "discount", "sale"]):
+            return "promotional"
+        elif any(word in desc for word in ["urgent", "asap", "deadline", "critical"]):
+            return "urgent"
+        else:
+            return "casual"
+
+    def generate_subject(self, description):
+        tone = self.detect_tone(description)
+        subject = random.choice(self.templates[tone])
+        return f"[{tone.capitalize()}] {subject}"
+
+# Sample usage
+generator = SubjectLineGenerator()
+descriptions = [
+    "Send the meeting agenda for tomorrow",
+    "Share the latest discount codes",
+    "Remind team about the urgent deadline",
+    "Check in with client about progress"
+]
+
+print("\n📬 Suggested Subject Lines:")
+for desc in descriptions:
+    subject = generator.generate_subject(desc)
+    print(f" - {desc}\n   → {subject}")
