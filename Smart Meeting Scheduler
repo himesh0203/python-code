@@ -1,0 +1,73 @@
+from datetime import datetime, timedelta
+
+WORKDAY_START = datetime.strptime("09:00", "%H:%M")
+WORKDAY_END = datetime.strptime("18:00", "%H:%M")
+
+class MeetingRequest:
+    def __init__(self, title, participants, duration_minutes, preferred_start):
+        self.title = title
+        self.participants = participants
+        self.duration = timedelta(minutes=duration_minutes)
+        self.preferred_start = preferred_start
+        self.scheduled_start = None
+        self.scheduled_end = None
+
+    def schedule(self, start_time):
+        self.scheduled_start = start_time
+        self.scheduled_end = start_time + self.duration
+
+    def __str__(self):
+        if self.scheduled_start:
+            return f"{self.title} ({self.duration}) → {self.scheduled_start.strftime('%H:%M')}–{self.scheduled_end.strftime('%H:%M')}"
+        else:
+            return f"{self.title} ({self.duration}) → Not Scheduled"
+
+class Scheduler:
+    def __init__(self):
+        self.meetings = []
+
+    def add_request(self, request):
+        self.meetings.append(request)
+
+    def detect_conflict(self, start, end):
+        for m in self.meetings:
+            if m.scheduled_start and m.scheduled_end:
+                if start < m.scheduled_end and end > m.scheduled_start:
+                    return True
+        return False
+
+    def optimize_schedule(self):
+        self.meetings.sort(key=lambda m: m.preferred_start)
+        current_time = WORKDAY_START
+
+        for m in self.meetings:
+            proposed_start = max(current_time, m.preferred_start)
+            proposed_end = proposed_start + m.duration
+
+            while proposed_end <= WORKDAY_END and self.detect_conflict(proposed_start, proposed_end):
+                proposed_start += timedelta(minutes=15)
+                proposed_end = proposed_start + m.duration
+
+            if proposed_end <= WORKDAY_END and not self.detect_conflict(proposed_start, proposed_end):
+                m.schedule(proposed_start)
+                current_time = proposed_end
+            else:
+                m.schedule(None)
+
+    def display_schedule(self):
+        print("\n📅 Final Meeting Schedule:")
+        print("-" * 50)
+        for m in self.meetings:
+            print(m)
+        print("-" * 50)
+
+# Sample usage
+scheduler = Scheduler()
+scheduler.add_request(MeetingRequest("Team Sync", ["Alice", "Bob"], 60, datetime.strptime("09:30", "%H:%M")))
+scheduler.add_request(MeetingRequest("Client Call", ["Alice"], 45, datetime.strptime("10:30", "%H:%M")))
+scheduler.add_request(MeetingRequest("Design Review", ["Bob", "Charlie"], 90, datetime.strptime("11:00", "%H:%M")))
+scheduler.add_request(MeetingRequest("Lunch Break", ["All"], 60, datetime.strptime("13:00", "%H:%M")))
+scheduler.add_request(MeetingRequest("Project Planning", ["Alice", "Charlie"], 120, datetime.strptime("14:00", "%H:%M")))
+
+scheduler.optimize_schedule()
+scheduler.display_schedule()
