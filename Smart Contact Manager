@@ -1,0 +1,66 @@
+from datetime import datetime
+import re
+
+class Contact:
+    def __init__(self, name, phone, email, tags=None):
+        self.name = name
+        self.phone = phone
+        self.email = email
+        self.tags = tags if tags else []
+        self.created_at = datetime.now()
+
+    def __str__(self):
+        tag_str = ", ".join(self.tags)
+        return f"{self.name} | 📞 {self.phone} | 📧 {self.email} | 🏷️ {tag_str} | 🕒 {self.created_at.strftime('%Y-%m-%d %H:%M:%S')}"
+
+class ContactManager:
+    def __init__(self):
+        self.contacts = []
+
+    def add_contact(self, name, phone, email, tags=None):
+        if not self._validate_email(email):
+            print(f"❌ Invalid email: {email}")
+            return
+        if not self._validate_phone(phone):
+            print(f"❌ Invalid phone number: {phone}")
+            return
+        contact = Contact(name, phone, email, tags)
+        self.contacts.append(contact)
+        print(f"✅ Contact '{name}' added.")
+
+    def search(self, keyword):
+        results = [c for c in self.contacts if keyword.lower() in c.name.lower() or keyword.lower() in " ".join(c.tags).lower()]
+        if results:
+            print(f"\n🔍 Search Results for '{keyword}':")
+            for c in results:
+                print(c)
+        else:
+            print(f"\n🔍 No contacts found for '{keyword}'.")
+
+    def sort_contacts(self, by="name"):
+        if by == "name":
+            self.contacts.sort(key=lambda c: c.name.lower())
+        elif by == "date":
+            self.contacts.sort(key=lambda c: c.created_at)
+        else:
+            print("❌ Invalid sort key. Use 'name' or 'date'.")
+            return
+        print(f"\n📋 Contacts sorted by {by}:")
+        for c in self.contacts:
+            print(c)
+
+    def _validate_email(self, email):
+        return re.match(r"[^@]+@[^@]+\.[^@]+", email)
+
+    def _validate_phone(self, phone):
+        return re.match(r"^\+?\d{10,15}$", phone)
+
+# Sample usage
+manager = ContactManager()
+manager.add_contact("Alice Mehta", "+919812345678", "alice@example.com", ["work", "project"])
+manager.add_contact("Bob Kumar", "+919876543210", "bob.kumar@example.com", ["friend"])
+manager.add_contact("Charlie", "12345", "charlie@invalid", ["test"])  # Invalid
+
+manager.search("work")
+manager.sort_contacts("name")
+manager.sort_contacts("date")
