@@ -1,0 +1,127 @@
+import pygame
+
+# --- Game Constants ---
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+PLAYER_SIZE = 32
+PLATFORM_HEIGHT = 20
+GRAVITY = 0.5
+PLAYER_SPEED = 5
+JUMP_STRENGTH = -10
+
+# --- Colors ---
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+
+# --- Player Class ---
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((PLAYER_SIZE, PLAYER_SIZE))
+        self.image.fill(BLUE)
+        self.rect = self.image.get_rect(topleft=(50, SCREEN_HEIGHT - 100))
+        self.vel_y = 0
+        self.on_ground = False
+
+    def update(self, platforms):
+        # Apply gravity
+        self.vel_y += GRAVITY
+        self.rect.y += self.vel_y
+
+        # Collision detection with platforms
+        self.on_ground = False
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect):
+                if self.vel_y > 0 and self.rect.bottom > platform.rect.top and self.rect.top < platform.rect.top:
+                    self.rect.bottom = platform.rect.top
+                    self.vel_y = 0
+                    self.on_ground = True
+                elif self.vel_y < 0 and self.rect.top < platform.rect.bottom and self.rect.bottom > platform.rect.bottom:
+                    self.rect.top = platform.rect.bottom
+                    self.vel_y = 0
+
+        # Keep player within screen bounds
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > SCREEN_WIDTH:
+            self.rect.right = SCREEN_WIDTH
+
+    def move_x(self, direction):
+        self.rect.x += direction * PLAYER_SPEED
+
+    def jump(self):
+        if self.on_ground:
+            self.vel_y = JUMP_STRENGTH
+            self.on_ground = False
+
+# --- Platform Class ---
+class Platform(pygame.sprite.Sprite):
+    def __init__(self, x, y, width):
+        super().__init__()
+        self.image = pygame.Surface((width, PLATFORM_HEIGHT))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+# --- Game Initialization ---
+pygame.init()
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Simple Platformer")
+clock = pygame.time.Clock()
+
+# --- Create Game Objects ---
+player = Player()
+platforms = pygame.sprite.Group()
+platforms.add(Platform(0, SCREEN_HEIGHT - PLATFORM_HEIGHT, SCREEN_WIDTH)) # Ground platform
+platforms.add(Platform(200, SCREEN_HEIGHT - 150, 150))
+platforms.add(Platform(450, SCREEN_HEIGHT - 250, 100))
+
+all_sprites = pygame.sprite.Group()
+all_sprites.add(player)
+all_sprites.add(platforms)
+
+# --- Game Loop ---
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.jump()
+
+    # Handle continuous movement
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player.move_x(-1)
+    if keys[pygame.K_RIGHT]:
+        player.move_x(1)
+
+    # Update game elements
+    player.update(platforms)
+
+    # Drawing
+    screen.fill(BLACK)
+    all_sprites.draw(screen)
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
+
+
+
+
+
+Prerequisites:
+Python: Ensure you have a Python interpreter installed.
+Pygame: Install Pygame using pip: pip install pygame
+
+
+
+
+To run this code in VS Code:
+Save the code as a Python file (e.g., platformer.py).
+Open the file in VS Code.
+Click the "Run Python File" button in the top-right corner of the editor, or right-click in the editor and select "Run Python File in Terminal."
