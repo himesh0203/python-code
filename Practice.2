@@ -1,0 +1,210 @@
+Prerequisites:
+Python 3: Ensure Python 3 is installed.
+Pygame: Install Pygame using pip:
+Code
+
+    pip install pygame
+
+
+
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Complex Space Shooter")
+
+# Colors
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+YELLOW = (255, 255, 0)
+
+# Player properties
+PLAYER_WIDTH = 50
+PLAYER_HEIGHT = 50
+PLAYER_SPEED = 5
+
+# Bullet properties
+BULLET_WIDTH = 10
+BULLET_HEIGHT = 20
+PLAYER_BULLET_SPEED = 10
+ENEMY_BULLET_SPEED = 5
+
+# Enemy properties
+ENEMY_WIDTH = 40
+ENEMY_HEIGHT = 40
+ENEMY_SPEED = 2
+ENEMY_SPAWN_RATE = 60  # Frames between enemy spawns
+
+# Game loop variables
+running = True
+clock = pygame.time.Clock()
+FPS = 60
+
+# --- Classes ---
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface([PLAYER_WIDTH, PLAYER_HEIGHT])
+        self.image.fill(BLUE)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = SCREEN_WIDTH // 2
+        self.rect.bottom = SCREEN_HEIGHT - 10
+        self.lives = 3
+
+    def update(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.rect.x -= PLAYER_SPEED
+        if keys[pygame.K_RIGHT]:
+            self.rect.x += PLAYER_SPEED
+
+        # Keep player within screen bounds
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > SCREEN_WIDTH:
+            self.rect.right = SCREEN_WIDTH
+
+    def shoot(self):
+        bullet = PlayerBullet(self.rect.centerx, self.rect.top)
+        all_sprites.add(bullet)
+        player_bullets.add(bullet)
+
+class PlayerBullet(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface([BULLET_WIDTH, BULLET_HEIGHT])
+        self.image.fill(YELLOW)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.bottom = y
+
+    def update(self):
+        self.rect.y -= PLAYER_BULLET_SPEED
+        if self.rect.bottom < 0:
+            self.kill()
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface([ENEMY_WIDTH, ENEMY_HEIGHT])
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(SCREEN_WIDTH - ENEMY_WIDTH)
+        self.rect.y = random.randrange(-100, -40)
+        self.speed_y = ENEMY_SPEED
+        self.shoot_chance = 0.01  # Probability of shooting each frame
+
+    def update(self):
+        self.rect.y += self.speed_y
+        if self.rect.top > SCREEN_HEIGHT + 10:
+            self.kill()  # Remove if off-screen
+            spawn_enemy() # Spawn a new one
+
+        if random.random() < self.shoot_chance:
+            self.shoot()
+
+    def shoot(self):
+        enemy_bullet = EnemyBullet(self.rect.centerx, self.rect.bottom)
+        all_sprites.add(enemy_bullet)
+        enemy_bullets.add(enemy_bullet)
+
+class EnemyBullet(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface([BULLET_WIDTH, BULLET_HEIGHT])
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.top = y
+
+    def update(self):
+        self.rect.y += ENEMY_BULLET_SPEED
+        if self.rect.top > SCREEN_HEIGHT:
+            self.kill()
+
+# --- Sprite Groups ---
+all_sprites = pygame.sprite.Group()
+player_bullets = pygame.sprite.Group()
+enemy_bullets = pygame.sprite.Group()
+enemies = pygame.sprite.Group()
+
+# --- Game Functions ---
+def spawn_enemy():
+    enemy = Enemy()
+    all_sprites.add(enemy)
+    enemies.add(enemy)
+
+# Create player
+player = Player()
+all_sprites.add(player)
+
+# Initial enemies
+for _ in range(5):
+    spawn_enemy()
+
+# --- Game Loop ---
+frame_count = 0
+while running:
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.shoot()
+
+    # Update
+    all_sprites.update()
+
+    # Player bullet collision with enemies
+    hits = pygame.sprite.groupcollide(player_bullets, enemies, True, True)
+    for hit in hits:
+        spawn_enemy() # Replace destroyed enemy
+
+    # Enemy bullet collision with player
+    player_hits = pygame.sprite.spritecollide(player, enemy_bullets, True)
+    for hit in player_hits:
+        player.lives -= 1
+        if player.lives <= 0:
+            running = False # Game over
+
+    # Drawing
+    screen.fill((0, 0, 0))  # Black background
+    all_sprites.draw(screen)
+
+    # Display lives (simple text rendering)
+    font = pygame.font.Font(None, 36)
+    lives_text = font.render(f"Lives: {player.lives}", True, WHITE)
+    screen.blit(lives_text, (10, 10))
+
+    # Update display
+    pygame.display.flip()
+
+    # Cap frame rate
+    clock.tick(FPS)
+
+    # Spawn enemies periodically
+    frame_count += 1
+    if frame_count % ENEMY_SPAWN_RATE == 0:
+        spawn_enemy()
+
+
+pygame.quit()
+
+
+To run this code in VS Code:
+Save the code: Save the code as a .py file (e.g., space_shooter.py).
+Open in VS Code: Open VS Code and open the folder containing your space_shooter.py file.
+Run:
+Open the integrated terminal (Ctrl+` or View > Terminal).
+Navigate to the directory where you saved the file.
+Execute the command: python space_shooter.py
