@@ -1,0 +1,146 @@
+class Item:
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
+
+class Player:
+    def __init__(self):
+        self.inventory = []
+        self.current_location = "starting_room"
+
+    def add_item(self, item):
+        self.inventory.append(item)
+        print(f"You picked up the {item.name}.")
+
+    def remove_item(self, item_name):
+        for item in self.inventory:
+            if item.name.lower() == item_name.lower():
+                self.inventory.remove(item)
+                print(f"You used the {item.name}.")
+                return True
+        print(f"You don't have a {item_name}.")
+        return False
+
+    def has_item(self, item_name):
+        return any(item.name.lower() == item_name.lower() for item in self.inventory)
+
+class Location:
+    def __init__(self, name, description, exits, items=None):
+        self.name = name
+        self.description = description
+        self.exits = exits  # Dictionary: {"direction": "location_name"}
+        self.items = items if items is not None else []
+
+    def display(self):
+        print(f"\n--- {self.name.replace('_', ' ').title()} ---")
+        print(self.description)
+        if self.items:
+            print("You see:")
+            for item in self.items:
+                print(f"- {item.name}: {item.description}")
+        print("Exits:", ", ".join(self.exits.keys()))
+
+class Game:
+    def __init__(self):
+        self.player = Player()
+        self.locations = self._create_world()
+
+    def _create_world(self):
+        # Define items
+        key = Item("rusty key", "A small, old key that looks like it could open a lock.")
+        torch = Item("torch", "A wooden torch, ready to be lit.")
+        map_piece = Item("map piece", "A torn piece of an ancient map.")
+
+        # Define locations
+        starting_room = Location(
+            "starting_room",
+            "You are in a dimly lit stone room. There's a dusty old table in the center.",
+            {"north": "corridor"},
+            [key]
+        )
+        corridor = Location(
+            "corridor",
+            "A long, narrow corridor with flickering torches on the walls.",
+            {"south": "starting_room", "east": "treasure_chamber", "west": "dark_cave"},
+            [torch]
+        )
+        treasure_chamber = Location(
+            "treasure_chamber",
+            "A grand chamber filled with glittering gold and ancient artifacts. A large chest sits in the middle.",
+            {"west": "corridor"}
+        )
+        dark_cave = Location(
+            "dark_cave",
+            "A damp and cold cave. It's too dark to see anything without a light source.",
+            {"east": "corridor"},
+            [map_piece]
+        )
+        return {
+            "starting_room": starting_room,
+            "corridor": corridor,
+            "treasure_chamber": treasure_chamber,
+            "dark_cave": dark_cave,
+        }
+
+    def play(self):
+        print("Welcome to the Python Adventure Game!")
+        print("Type 'help' for commands.")
+
+        while True:
+            current_loc = self.locations[self.player.current_location]
+            current_loc.display()
+
+            command = input("> ").lower().strip()
+
+            if command == "quit":
+                print("Exiting game. Goodbye!")
+                break
+            elif command == "help":
+                print("Commands: go [direction], take [item], inventory, use [item], quit")
+            elif command.startswith("go "):
+                direction = command[3:]
+                if direction in current_loc.exits:
+                    if direction == "west" and current_loc.name == "corridor" and not self.player.has_item("torch"):
+                        print("It's too dark to enter the cave without a light source!")
+                    else:
+                        self.player.current_location = current_loc.exits[direction]
+                else:
+                    print("You cannot go in that direction.")
+            elif command.startswith("take "):
+                item_name = command[5:]
+                found_item = None
+                for item in current_loc.items:
+                    if item.name.lower() == item_name.lower():
+                        found_item = item
+                        break
+                if found_item:
+                    self.player.add_item(found_item)
+                    current_loc.items.remove(found_item)
+                else:
+                    print(f"There is no {item_name} here.")
+            elif command == "inventory":
+                if self.player.inventory:
+                    print("Your inventory:")
+                    for item in self.player.inventory:
+                        print(f"- {item.name}: {item.description}")
+                else:
+                    print("Your inventory is empty.")
+            elif command.startswith("use "):
+                item_to_use = command[4:]
+                if self.player.has_item(item_to_use):
+                    if item_to_use == "rusty key" and self.player.current_location == "treasure_chamber":
+                        print("You unlock the grand chest with the rusty key! Inside, you find a shimmering crown!")
+                        self.player.remove_item("rusty key")
+                    elif item_to_use == "torch" and self.player.current_location == "dark_cave":
+                        print("You light the torch, illuminating the dark cave. You can now see clearly.")
+                        # This could unlock new interactions or reveal hidden items
+                    else:
+                        print(f"You can't use the {item_to_use} here.")
+                else:
+                    print(f"You don't have a {item_to_use}.")
+            else:
+                print("Invalid command. Type 'help' for assistance.")
+
+if __name__ == "__main__":
+    game = Game()
+    game.play()
