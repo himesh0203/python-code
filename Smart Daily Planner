@@ -1,0 +1,75 @@
+import re
+import dateparser
+from datetime import datetime, timedelta
+
+# Workday boundaries
+WORKDAY_START = datetime.strptime("09:00", "%H:%M")
+WORKDAY_END = datetime.strptime("18:00", "%H:%M")
+
+# Sample natural language tasks
+tasks_input = [
+    "Finish report by 3 PM",
+    "Call mom at 6",
+    "Team sync at 10 AM",
+    "Lunch break at 1 PM",
+    "Review budget tomorrow at 11 AM",
+    "Prepare slides",
+    "Reply to emails before noon",
+    "Client call at 4:30 PM",
+]
+
+# Parse task input
+def parse_task(text):
+    time_match = re.search(r'\b(at|by|before)\s+([0-9]{1,2}(:[0-9]{2})?\s*(AM|PM)?)', text, re.IGNORECASE)
+    time_str = time_match.group(2) if time_match else None
+    time_obj = dateparser.parse(time_str) if time_str else None
+
+    task = re.sub(r'\b(at|by|before)\s+[0-9]{1,2}(:[0-9]{2})?\s*(AM|PM)?', '', text, flags=re.IGNORECASE)
+    task = re.sub(r'\b(today|tomorrow|noon|morning|evening|night)\b', '', task, flags=re.IGNORECASE).strip()
+
+    return {
+        "task": task,
+        "time": time_obj.strftime("%H:%M") if time_obj else "Unspecified",
+        "datetime": time_obj if time_obj else None
+    }
+
+# Build schedule
+def build_schedule(parsed_tasks):
+    schedule = []
+    current_time = WORKDAY_START
+
+    for item in parsed_tasks:
+        if item["datetime"]:
+            start_time = item["datetime"]
+        else:
+            start_time = current_time
+
+        end_time = start_time + timedelta(minutes=45)
+        if end_time <= WORKDAY_END:
+            schedule.append({
+                "task": item["task"],
+                "start": start_time.strftime("%H:%M"),
+                "end": end_time.strftime("%H:%M")
+            })
+            current_time = end_time
+        else:
+            schedule.append({
+                "task": item["task"],
+                "start": "Not Scheduled",
+                "end": "N/A"
+            })
+
+    return schedule
+
+# Display schedule
+def display_schedule(schedule):
+    print("\n🗓️ Smart Daily Planner:")
+    print("-" * 50)
+    for item in schedule:
+        print(f"{item['start']} - {item['end']} → {item['task']}")
+    print("-" * 50)
+
+# Run planner
+parsed_tasks = [parse_task(t) for t in tasks_input]
+daily_schedule = build_schedule(parsed_tasks)
+display_schedule(daily_schedule)
