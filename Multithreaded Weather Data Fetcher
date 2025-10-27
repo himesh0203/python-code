@@ -1,0 +1,86 @@
+Here’s a complex yet professional Python code that demonstrates advanced concepts like multithreading, API integration, and data processing. It is designed to run seamlessly on online compilers.
+
+Code: Multithreaded Weather Data Fetcher
+Pythonimport requests
+import threading
+import time
+
+# Global variable to store weather data
+weather_data = {}
+
+# Function to fetch weather data from a public API
+def fetch_weather(city):
+    try:
+        # Replace with a valid API key from OpenWeatherMap or similar service
+        API_KEY = "your_api_key_here"
+        BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+        params = {"q": city, "appid": API_KEY, "units": "metric"}
+        
+        response = requests.get(BASE_URL, params=params)
+        if response.status_code == 200:
+            data = response.json()
+            weather_data[city] = {
+                "Temperature": data["main"]["temp"],
+                "Weather": data["weather"][0]["description"],
+                "Humidity": data["main"]["humidity"]
+            }
+        else:
+            weather_data[city] = f"Error: {response.status_code} - {response.reason}"
+    except Exception as e:
+        weather_data[city] = f"Exception: {str(e)}"
+
+# Function to display weather data
+def display_weather():
+    print("\n--- Weather Data ---")
+    for city, data in weather_data.items():
+        if isinstance(data, dict):
+            print(f"City: {city}")
+            print(f"  Temperature: {data['Temperature']}°C")
+            print(f"  Weather: {data['Weather']}")
+            print(f"  Humidity: {data['Humidity']}%\n")
+        else:
+            print(f"City: {city} - {data}\n")
+
+# Main function to handle multithreading
+def main():
+    cities = ["Mumbai", "New York", "London", "Tokyo", "Sydney"]
+    threads = []
+
+    print("Fetching weather data...\n")
+    start_time = time.time()
+
+    # Create and start threads
+    for city in cities:
+        thread = threading.Thread(target=fetch_weather, args=(city,))
+        threads.append(thread)
+        thread.start()
+
+    # Wait for all threads to complete
+    for thread in threads:
+        thread.join()
+
+    end_time = time.time()
+    print(f"Data fetched in {end_time - start_time:.2f} seconds.\n")
+
+    # Display the fetched weather data
+    display_weather()
+
+if __name__ == "__main__":
+    main()
+
+
+Key Features of the Code:
+
+Multithreading: Fetches weather data for multiple cities concurrently, improving efficiency.
+API Integration: Uses a public weather API (like OpenWeatherMap) to fetch real-time data.
+Error Handling: Gracefully handles API errors and exceptions.
+Scalability: Can be extended to include more cities or additional data processing.
+
+
+How to Run:
+
+Replace "your_api_key_here" with a valid API key from a weather API provider (e.g., OpenWeatherMap).
+Copy and paste the code into an online Python compiler (e.g., Replit, Programiz, or any other).
+Run the script to see the weather data for the specified cities.
+
+This code is professional, modular, and demonstrates advanced Python concepts while being easy to execute in an online environment.
