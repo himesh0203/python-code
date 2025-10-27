@@ -1,0 +1,61 @@
+def start_game():
+    print("Welcome to the Whispering Woods Adventure!")
+    print("You find yourself at the edge of a mysterious forest.")
+    print("Do you dare to enter? (yes/no)")
+
+    choice = input("> ").lower()
+
+    if choice == "yes":
+        forest_path()
+    elif choice == "no":
+        print("You decide to turn back, leaving the mysteries of the Whispering Woods untouched. Game Over.")
+    else:
+        print("Invalid choice. Please try again.")
+        start_game()
+
+def forest_path():
+    print("\nYou venture into the forest. The trees are tall and ancient, their branches intertwining above you.")
+    print("You come to a fork in the path. One path leads deeper into a dark thicket (left), the other follows a faint stream (right).")
+    print("Which path do you take? (left/right)")
+
+    choice = input("> ").lower()
+
+    if choice == "left":
+        dark_thicket()
+    elif choice == "right":
+        faint_stream()
+    else:
+        print("Invalid choice. Please try again.")
+        forest_path()
+
+def dark_thicket():
+    print("\nAs you enter the dark thicket, the air grows heavy and cold. You hear strange rustling sounds.")
+    print("Suddenly, a pair of glowing eyes appears in the shadows!")
+    print("Do you confront the creature or try to sneak away? (confront/sneak)")
+
+    choice = input("> ").lower()
+
+    if choice == "confront":
+        print("You bravely stand your ground, but the creature is a fearsome beast. You are overwhelmed. Game Over.")
+    elif choice == "sneak":
+        print("You expertly sneak past the creature, emerging on the other side of the thicket. You find a hidden treasure chest! You Win!")
+    else:
+        print("Invalid choice. Please try again.")
+        dark_thicket()
+
+def faint_stream():
+    print("\nYou follow the gentle stream, enjoying the sunlight filtering through the leaves.")
+    print("Eventually, you reach a beautiful clearing with a sparkling waterfall and a small, cozy cabin.")
+    print("Do you investigate the cabin or relax by the waterfall? (cabin/waterfall)")
+
+    choice = input("> ").lower()
+
+    if choice == "cabin":
+        print("You cautiously approach the cabin and find it abandoned, but inside you discover a map leading to untold riches! You Win!")
+    elif choice == "waterfall":
+        print("You relax by the waterfall, enjoying the peace and beauty of nature. After a while, you decide to head home. Game Over, but a peaceful one.")
+    else:
+        print("Invalid choice. Please try again.")
+        faint_stream()
+
+start_game()
