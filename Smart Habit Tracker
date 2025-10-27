@@ -1,0 +1,79 @@
+from datetime import datetime, timedelta
+from collections import defaultdict, Counter
+
+class Habit:
+    def __init__(self, name):
+        self.name = name
+        self.log = set()  # Dates when habit was completed
+
+    def mark_done(self, date=None):
+        date = date or datetime.today().date()
+        self.log.add(date)
+        print(f"✅ Marked '{self.name}' as done on {date}")
+
+    def get_streak(self):
+        today = datetime.today().date()
+        streak = 0
+        for i in range(0, 365):
+            day = today - timedelta(days=i)
+            if day in self.log:
+                streak += 1
+            else:
+                break
+        return streak
+
+    def completion_rate(self, days=30):
+        today = datetime.today().date()
+        start = today - timedelta(days=days)
+        completed = sum(1 for d in self.log if start <= d <= today)
+        return (completed / days) * 100
+
+    def __str__(self):
+        return f"{self.name} | 🔁 Streak: {self.get_streak()} days | 📈 {self.completion_rate():.1f}% last 30 days"
+
+class HabitTracker:
+    def __init__(self):
+        self.habits = {}
+
+    def add_habit(self, name):
+        if name in self.habits:
+            print("⚠️ Habit already exists.")
+        else:
+            self.habits[name] = Habit(name)
+            print(f"➕ Added habit: {name}")
+
+    def mark(self, name):
+        if name in self.habits:
+            self.habits[name].mark_done()
+        else:
+            print("❌ Habit not found.")
+
+    def report(self):
+        print("\n📊 Habit Report:")
+        for habit in self.habits.values():
+            print(f" - {habit}")
+
+    def trend(self):
+        print("\n📅 Weekly Completion Trend:")
+        week = defaultdict(list)
+        for habit in self.habits.values():
+            for d in habit.log:
+                week[d.strftime("%A")].append(habit.name)
+        for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]:
+            habits_done = Counter(week.get(day, []))
+            print(f"{day}: {dict(habits_done)}")
+
+# Sample usage
+tracker = HabitTracker()
+tracker.add_habit("Exercise")
+tracker.add_habit("Read")
+tracker.add_habit("Meditate")
+
+# Simulate some logs
+tracker.habits["Exercise"].mark_done(datetime.today().date() - timedelta(days=1))
+tracker.habits["Exercise"].mark_done(datetime.today().date())
+tracker.habits["Read"].mark_done(datetime.today().date() - timedelta(days=2))
+tracker.habits["Meditate"].mark_done(datetime.today().date() - timedelta(days=3))
+
+tracker.report()
+tracker.trend()
