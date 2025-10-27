@@ -1,0 +1,143 @@
+Prerequisites:
+Python installed and Pygame library installed (pip install pygame).
+
+
+
+
+
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Galactic Defender")
+
+# Colors
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+
+# Player
+player_img = pygame.image.load('player.png') # Ensure you have a 'player.png' image
+player_width = 64
+player_height = 64
+player_x = (SCREEN_WIDTH - player_width) // 2
+player_y = SCREEN_HEIGHT - player_height - 10
+player_speed = 5
+
+# Bullets
+bullet_img = pygame.image.load('bullet.png') # Ensure you have a 'bullet.png' image
+bullet_width = 16
+bullet_height = 32
+bullet_speed = 10
+bullets = [] # List to store active bullets
+
+# Enemies
+enemy_img = pygame.image.load('enemy.png') # Ensure you have an 'enemy.png' image
+enemy_width = 64
+enemy_height = 64
+enemy_speed = 2
+enemies = [] # List to store active enemies
+enemy_spawn_timer = 0
+ENEMY_SPAWN_INTERVAL = 60 # frames
+
+# Score
+score = 0
+font = pygame.font.Font(None, 36)
+
+def draw_player(x, y):
+    screen.blit(player_img, (x, y))
+
+def draw_bullet(x, y):
+    screen.blit(bullet_img, (x, y))
+
+def draw_enemy(x, y):
+    screen.blit(enemy_img, (x, y))
+
+def fire_bullet(x, y):
+    bullets.append(pygame.Rect(x + player_width // 2 - bullet_width // 2, y, bullet_width, bullet_height))
+
+def spawn_enemy():
+    x = random.randint(0, SCREEN_WIDTH - enemy_width)
+    y = random.randint(-enemy_height * 3, -enemy_height) # Spawn off-screen
+    enemies.append(pygame.Rect(x, y, enemy_width, enemy_height))
+
+# Game loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                fire_bullet(player_x, player_y)
+
+    # Player movement
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and player_x > 0:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - player_width:
+        player_x += player_speed
+
+    # Bullet movement
+    for bullet in bullets:
+        bullet.y -= bullet_speed
+        if bullet.y < 0:
+            bullets.remove(bullet)
+
+    # Enemy spawning
+    enemy_spawn_timer += 1
+    if enemy_spawn_timer >= ENEMY_SPAWN_INTERVAL:
+        spawn_enemy()
+        enemy_spawn_timer = 0
+
+    # Enemy movement and collision with player
+    for enemy in enemies:
+        enemy.y += enemy_speed
+        if enemy.y > SCREEN_HEIGHT:
+            enemies.remove(enemy)
+            score -= 10 # Penalty for missed enemies
+        if enemy.colliderect(pygame.Rect(player_x, player_y, player_width, player_height)):
+            running = False # Game Over
+
+    # Bullet-enemy collision
+    for bullet in bullets[:]: # Iterate over a copy to allow modification
+        for enemy in enemies[:]:
+            if bullet.colliderect(enemy):
+                bullets.remove(bullet)
+                enemies.remove(enemy)
+                score += 100
+                break # Bullet can only hit one enemy
+
+    # Drawing
+    screen.fill(BLUE) # Background color
+    draw_player(player_x, player_y)
+    for bullet in bullets:
+        draw_bullet(bullet.x, bullet.y)
+    for enemy in enemies:
+        draw_enemy(enemy.x, enemy.y)
+
+    # Display score
+    score_text = font.render(f"Score: {score}", True, WHITE)
+    screen.blit(score_text, (10, 10))
+
+    pygame.display.flip()
+
+pygame.quit()
+
+
+
+
+To run this in VS Code:
+Save the code as main.py in a folder.
+Create placeholder image files named player.png, bullet.png, and enemy.png in the same folder. You can use any small image files for testing.
+Open the folder in VS Code.
+Open main.py in the editor.
+Click the "Run Python File" play button in the top-right of the editor, or right-click in the editor and select "Run Python File in Terminal".
+This will execute the game, and a Pygame window will appear, allowing you to play.
