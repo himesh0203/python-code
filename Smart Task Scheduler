@@ -1,0 +1,60 @@
+from datetime import datetime, timedelta
+
+# Define workday boundaries
+WORKDAY_START = datetime.strptime("09:00", "%H:%M")
+WORKDAY_END = datetime.strptime("17:00", "%H:%M")
+
+# Sample task input
+tasks = [
+    {"name": "Team Meeting", "priority": "high", "duration": 60},
+    {"name": "Email Cleanup", "priority": "low", "duration": 30},
+    {"name": "Client Proposal", "priority": "high", "duration": 120},
+    {"name": "Code Review", "priority": "medium", "duration": 45},
+    {"name": "Lunch Break", "priority": "medium", "duration": 60},
+    {"name": "Product Research", "priority": "low", "duration": 90},
+]
+
+# Priority mapping
+priority_order = {"high": 1, "medium": 2, "low": 3}
+
+# Sort tasks by priority and duration
+sorted_tasks = sorted(tasks, key=lambda x: (priority_order[x["priority"]], -x["duration"]))
+
+# Schedule builder
+def build_schedule(tasks):
+    schedule = []
+    current_time = WORKDAY_START
+
+    for task in tasks:
+        end_time = current_time + timedelta(minutes=task["duration"])
+        if end_time <= WORKDAY_END:
+            schedule.append({
+                "task": task["name"],
+                "start": current_time.strftime("%H:%M"),
+                "end": end_time.strftime("%H:%M"),
+                "duration": task["duration"],
+                "priority": task["priority"]
+            })
+            current_time = end_time
+        else:
+            schedule.append({
+                "task": task["name"],
+                "start": "Not Scheduled",
+                "end": "N/A",
+                "duration": task["duration"],
+                "priority": task["priority"]
+            })
+
+    return schedule
+
+# Display function
+def display_schedule(schedule):
+    print("\n📅 Daily Schedule:")
+    print("-" * 50)
+    for item in schedule:
+        print(f"{item['start']} - {item['end']} | {item['task']} ({item['priority'].capitalize()}, {item['duration']} mins)")
+    print("-" * 50)
+
+# Run scheduler
+daily_plan = build_schedule(sorted_tasks)
+display_schedule(daily_plan)
