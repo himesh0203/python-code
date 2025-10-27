@@ -1,0 +1,52 @@
+import re
+from collections import Counter
+import random
+
+class PrivacySanitizer:
+    def __init__(self):
+        self.patterns = {
+            "email": r"\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b",
+            "phone": r"\b\d{10}\b",
+            "name": r"\b[A-Z][a-z]+\s[A-Z][a-z]+\b"
+        }
+
+    def anonymize(self, text):
+        for label, pattern in self.patterns.items():
+            text = re.sub(pattern, f"[{label.upper()}]", text)
+        return text
+
+class DifferentialPrivacyAnalyzer:
+    def __init__(self, epsilon=1.0):
+        self.epsilon = epsilon
+
+    def add_noise(self, count):
+        sensitivity = 1
+        scale = sensitivity / self.epsilon
+        noise = random.laplacevariate(0, scale)
+        return max(0, int(count + noise))
+
+    def analyze(self, text):
+        words = re.findall(r'\b\w+\b', text.lower())
+        raw_counts = Counter(words)
+        noisy_counts = {word: self.add_noise(count) for word, count in raw_counts.items()}
+        return dict(sorted(noisy_counts.items(), key=lambda x: x[1], reverse=True)[:10])
+
+# Sample input
+user_text = """
+Hi, I'm Alice Johnson. My email is alice.j@example.com and my phone number is 9876543210.
+I love using this app for productivity and planning. It's helped me stay organized.
+"""
+
+# Run privacy-aware analysis
+sanitizer = PrivacySanitizer()
+clean_text = sanitizer.anonymize(user_text)
+
+analyzer = DifferentialPrivacyAnalyzer(epsilon=0.5)
+top_words = analyzer.analyze(clean_text)
+
+# Output
+print("\n🔐 Sanitized Text:")
+print(clean_text)
+print("\n📊 Top Words with Differential Privacy:")
+for word, count in top_words.items():
+    print(f" - {word}: {count}")
