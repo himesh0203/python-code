@@ -1,0 +1,56 @@
+import re
+
+class MoodRecommender:
+    def __init__(self):
+        self.mood_map = {
+            "happy": ["Pop", "Dance", "Indie Rock"],
+            "sad": ["Acoustic", "Blues", "Classical"],
+            "angry": ["Metal", "Hard Rock", "Rap"],
+            "relaxed": ["Jazz", "Lo-fi", "Ambient"],
+            "energetic": ["EDM", "Hip-Hop", "Workout"],
+            "romantic": ["R&B", "Soul", "Ballads"]
+        }
+
+    def detect_mood(self, text):
+        text = text.lower()
+        if re.search(r"\b(happy|joyful|excited|cheerful)\b", text):
+            return "happy"
+        elif re.search(r"\b(sad|down|depressed|blue)\b", text):
+            return "sad"
+        elif re.search(r"\b(angry|mad|furious|annoyed)\b", text):
+            return "angry"
+        elif re.search(r"\b(relaxed|calm|peaceful|chill)\b", text):
+            return "relaxed"
+        elif re.search(r"\b(energetic|pumped|motivated|active)\b", text):
+            return "energetic"
+        elif re.search(r"\b(love|romantic|affectionate|sweet)\b", text):
+            return "romantic"
+        else:
+            return None
+
+    def recommend_genres(self, mood):
+        return self.mood_map.get(mood, [])
+
+    def generate_recommendation(self, user_input):
+        mood = self.detect_mood(user_input)
+        if mood:
+            genres = self.recommend_genres(mood)
+            print(f"\n🎵 Based on your mood ('{mood}'), you might enjoy:")
+            for genre in genres:
+                print(f" - {genre}")
+        else:
+            print("\n⚠️ Sorry, I couldn't detect your mood. Try describing it differently.")
+
+# Sample usage
+recommender = MoodRecommender()
+user_inputs = [
+    "I feel really happy today!",
+    "I'm a bit down and tired.",
+    "Feeling pumped and ready to go!",
+    "Just want to chill and relax.",
+    "I'm in love and it's beautiful.",
+    "I'm so annoyed right now."
+]
+
+for mood_text in user_inputs:
+    recommender.generate_recommendation(mood_text)
