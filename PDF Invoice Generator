@@ -1,0 +1,87 @@
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.units import mm
+from datetime import datetime
+
+# Sample invoice data
+invoice_data = {
+    "company_name": "TechNova Solutions",
+    "company_address": "123 Innovation Drive\nMumbai, MH 400001\nIndia",
+    "client_name": "Acme Corp",
+    "client_address": "456 Market Street\nSan Francisco, CA 94105\nUSA",
+    "invoice_number": "INV-2025-001",
+    "invoice_date": datetime.now().strftime("%d %b %Y"),
+    "due_date": "15 Nov 2025",
+    "items": [
+        {"description": "Web Development Services", "quantity": 1, "unit_price": 1500},
+        {"description": "SEO Optimization", "quantity": 1, "unit_price": 800},
+        {"description": "Monthly Maintenance", "quantity": 3, "unit_price": 200},
+    ],
+    "notes": "Thank you for your business. Payment is due within 15 days.",
+    "currency": "USD"
+}
+
+def generate_invoice(data, filename="invoice.pdf"):
+    c = canvas.Canvas(filename, pagesize=A4)
+    width, height = A4
+
+    def draw_header():
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(30, height - 50, data["company_name"])
+        c.setFont("Helvetica", 10)
+        c.drawString(30, height - 65, data["company_address"])
+
+    def draw_client_info():
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(30, height - 120, "Bill To:")
+        c.setFont("Helvetica", 10)
+        c.drawString(30, height - 135, data["client_name"])
+        c.drawString(30, height - 150, data["client_address"])
+
+    def draw_invoice_meta():
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(400, height - 120, "Invoice #:")
+        c.drawString(400, height - 135, "Date:")
+        c.drawString(400, height - 150, "Due Date:")
+        c.setFont("Helvetica", 10)
+        c.drawString(470, height - 120, data["invoice_number"])
+        c.drawString(470, height - 135, data["invoice_date"])
+        c.drawString(470, height - 150, data["due_date"])
+
+    def draw_table():
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(30, height - 200, "Description")
+        c.drawString(300, height - 200, "Qty")
+        c.drawString(350, height - 200, "Unit Price")
+        c.drawString(450, height - 200, "Total")
+
+        y = height - 215
+        total_amount = 0
+        c.setFont("Helvetica", 10)
+        for item in data["items"]:
+            total = item["quantity"] * item["unit_price"]
+            total_amount += total
+            c.drawString(30, y, item["description"])
+            c.drawString(300, y, str(item["quantity"]))
+            c.drawString(350, y, f'{data["currency"]} {item["unit_price"]:.2f}')
+            c.drawString(450, y, f'{data["currency"]} {total:.2f}')
+            y -= 15
+
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(350, y - 10, "Grand Total:")
+        c.drawString(450, y - 10, f'{data["currency"]} {total_amount:.2f}')
+
+    def draw_footer():
+        c.setFont("Helvetica-Oblique", 9)
+        c.drawString(30, 50, data["notes"])
+
+    draw_header()
+    draw_client_info()
+    draw_invoice_meta()
+    draw_table()
+    draw_footer()
+    c.save()
+
+# Run the generator
+generate_invoice(invoice_data)
+print("Invoice generated successfully.")
