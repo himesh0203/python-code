@@ -1,0 +1,52 @@
+from datetime import datetime
+import re
+
+class VoiceCommand:
+    def __init__(self, raw_text):
+        self.raw_text = raw_text
+        self.timestamp = datetime.now()
+        self.intent = self.detect_intent()
+        self.status = "Logged" if self.intent else "Unrecognized"
+
+    def detect_intent(self):
+        text = self.raw_text.lower()
+        if re.search(r'\b(play|start)\b.*\b(music|song|radio)\b', text):
+            return "Play Music"
+        elif re.search(r'\b(set|create)\b.*\b(alarm|reminder)\b', text):
+            return "Set Alarm"
+        elif re.search(r'\b(send|write)\b.*\b(message|email)\b', text):
+            return "Send Message"
+        elif re.search(r'\b(open|launch)\b.*\b(app|browser|camera)\b', text):
+            return "Open App"
+        elif re.search(r'\b(call|dial)\b.*\b(\w+)\b', text):
+            return "Make Call"
+        else:
+            return None
+
+    def __str__(self):
+        return f"[{self.timestamp.strftime('%Y-%m-%d %H:%M:%S')}] {self.raw_text} → {self.intent or '❌ Unknown'}"
+
+class CommandLogger:
+    def __init__(self):
+        self.commands = []
+
+    def log_command(self, text):
+        command = VoiceCommand(text)
+        self.commands.append(command)
+        print(f"📝 {command.status}: {command}")
+
+    def report(self):
+        print("\n📋 Voice Command Log:")
+        for cmd in self.commands:
+            print(f" - {cmd}")
+
+# Simulated usage
+logger = CommandLogger()
+logger.log_command("Play some relaxing music")
+logger.log_command("Set an alarm for 7 AM")
+logger.log_command("Send a message to Priya")
+logger.log_command("Open the camera app")
+logger.log_command("Call mom")
+logger.log_command("What's the weather today?")  # Unsupported
+
+logger.report()
