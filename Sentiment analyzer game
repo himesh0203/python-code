@@ -1,0 +1,39 @@
+import random
+
+def sentiment_analyzer_game():
+    """
+    A text-based game that analyzes the sentiment of user-entered sentences.
+    Users gain points for using positive words and lose points for negative words.
+    """
+    positive_words = ["happy", "joy", "love", "great", "excellent", "fantastic", "amazing", "good", "wonderful", "positive"]
+    negative_words = ["sad", "hate", "bad", "terrible", "awful", "poor", "negative", "angry", "frustrated", "disappointing"]
+    score = 0
+
+    print("Welcome to the Sentiment Analyzer Game!")
+    print("Enter sentences, and I'll analyze their sentiment.")
+    print("You gain points for positive words and lose points for negative words.")
+    print("Type 'quit' to exit the game.")
+
+    while True:
+        user_input = input("\nEnter your sentence: ").lower()
+
+        if user_input == 'quit':
+            print(f"Thanks for playing! Your final score is: {score}")
+            break
+
+        words = user_input.split()
+        sentence_sentiment_score = 0
+
+        for word in words:
+            if word in positive_words:
+                sentence_sentiment_score += 1
+                print(f"'{word}' - Positive! (+1 point)")
+            elif word in negative_words:
+                sentence_sentiment_score -= 1
+                print(f"'{word}' - Negative! (-1 point)")
+
+        score += sentence_sentiment_score
+        print(f"Current score: {score}")
+
+if __name__ == "__main__":
+    sentiment_analyzer_game()
