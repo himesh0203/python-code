@@ -1,0 +1,67 @@
+from datetime import datetime, timedelta
+import random
+
+class TaskSession:
+    def __init__(self, task_name, start_time, end_time):
+        self.task_name = task_name
+        self.start_time = start_time
+        self.end_time = end_time
+        self.duration = end_time - start_time
+
+    def __str__(self):
+        return f"{self.task_name}: {self.start_time.strftime('%H:%M')}–{self.end_time.strftime('%H:%M')} ({self.duration})"
+
+class TimeTracker:
+    def __init__(self):
+        self.sessions = []
+
+    def log_session(self, task_name, start_time, end_time):
+        if end_time <= start_time:
+            print(f"❌ Invalid session for '{task_name}'")
+            return
+        self.sessions.append(TaskSession(task_name, start_time, end_time))
+
+    def total_time(self):
+        return sum((s.duration for s in self.sessions), timedelta())
+
+    def average_session(self):
+        if not self.sessions:
+            return timedelta()
+        return self.total_time() / len(self.sessions)
+
+    def detect_idle_gaps(self):
+        gaps = []
+        sorted_sessions = sorted(self.sessions, key=lambda s: s.start_time)
+        for i in range(1, len(sorted_sessions)):
+            gap = sorted_sessions[i].start_time - sorted_sessions[i - 1].end_time
+            if gap > timedelta(minutes=30):
+                gaps.append((sorted_sessions[i - 1].end_time, sorted_sessions[i].start_time, gap))
+        return gaps
+
+    def productivity_score(self):
+        total = self.total_time().total_seconds() / 3600
+        gaps = sum((g[2].total_seconds() for g in self.detect_idle_gaps())) / 3600
+        score = max(0, 100 - (gaps / total * 100)) if total > 0 else 0
+        return round(score, 2)
+
+    def report(self):
+        print("\n📊 Time Tracker Report:")
+        for s in self.sessions:
+            print(f" - {s}")
+        print(f"\n🕒 Total Time: {self.total_time()}")
+        print(f"📈 Average Session: {self.average_session()}")
+        print(f"⚠️ Idle Gaps:")
+        for g in self.detect_idle_gaps():
+            print(f"   - {g[0].strftime('%H:%M')} to {g[1].strftime('%H:%M')} ({g[2]})")
+        print(f"\n✅ Productivity Score: {self.productivity_score()}%")
+
+# Simulate usage
+tracker = TimeTracker()
+now = datetime.strptime("09:00", "%H:%M")
+tracker.log_session("Email Review", now, now + timedelta(minutes=45))
+tracker.log_session("Team Meeting", now + timedelta(hours=1), now + timedelta(hours=2))
+tracker.log_session("Coding", now + timedelta(hours=2, minutes=30), now + timedelta(hours=4))
+tracker.log_session("Break", now + timedelta(hours=4, minutes=30), now + timedelta(hours=5))
+tracker.log_session("Planning", now + timedelta(hours=5, minutes=45), now + timedelta(hours=6, minutes=30))
+
+tracker.report()
