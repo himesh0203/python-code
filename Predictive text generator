@@ -1,0 +1,54 @@
+class PredictiveTextGenerator:
+    def __init__(self, corpus):
+        """
+        Initializes the predictive text generator with a given corpus.
+        Builds a basic n-gram model (here, bigrams) for word predictions.
+        """
+        self.corpus = corpus.lower()
+        self.word_pairs = self._build_bigram_model()
+
+    def _build_bigram_model(self):
+        """
+        Constructs a dictionary of word pairs (bigrams) and their frequencies.
+        The key is the first word, and the value is a dictionary of subsequent words
+        and their counts.
+        """
+        words = self.corpus.split()
+        word_pairs = {}
+        for i in range(len(words) - 1):
+            current_word = words[i]
+            next_word = words[i+1]
+            if current_word not in word_pairs:
+                word_pairs[current_word] = {}
+            word_pairs[current_word][next_word] = word_pairs[current_word].get(next_word, 0) + 1
+        return word_pairs
+
+    def predict_next_word(self, last_word, num_predictions=3):
+        """
+        Predicts the next most likely words based on the last word provided.
+        Returns a list of predicted words sorted by frequency.
+        """
+        last_word = last_word.lower()
+        if last_word in self.word_pairs:
+            possible_next_words = self.word_pairs[last_word]
+            sorted_predictions = sorted(possible_next_words.items(), key=lambda item: item[1], reverse=True)
+            return [word for word, count in sorted_predictions[:num_predictions]]
+        else:
+            return []
+
+# Example Usage:
+if __name__ == "__main__":
+    sample_corpus = """
+    The quick brown fox jumps over the lazy dog.
+    The dog barks loudly.
+    Quick brown fox runs fast.
+    Lazy dog sleeps all day.
+    """
+
+    predictor = PredictiveTextGenerator(sample_corpus)
+
+    print("Predictions for 'the':", predictor.predict_next_word("the"))
+    print("Predictions for 'fox':", predictor.predict_next_word("fox"))
+    print("Predictions for 'dog':", predictor.predict_next_word("dog"))
+    print("Predictions for 'runs':", predictor.predict_next_word("runs"))
+    print("Predictions for 'apple':", predictor.predict_next_word("apple"))
