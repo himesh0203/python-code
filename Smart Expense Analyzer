@@ -1,0 +1,76 @@
+from datetime import datetime, timedelta
+from collections import defaultdict
+import statistics
+
+class Expense:
+    def __init__(self, date, category, amount):
+        self.date = date
+        self.category = category
+        self.amount = amount
+
+    def __str__(self):
+        return f"{self.date.strftime('%Y-%m-%d')} | {self.category:<12} | ₹{self.amount:.2f}"
+
+class ExpenseTracker:
+    def __init__(self):
+        self.expenses = []
+
+    def add_expense(self, category, amount, date=None):
+        date = date or datetime.today().date()
+        self.expenses.append(Expense(date, category, amount))
+
+    def summarize_by_category(self):
+        summary = defaultdict(float)
+        for e in self.expenses:
+            summary[e.category] += e.amount
+        return summary
+
+    def daily_trend(self):
+        trend = defaultdict(float)
+        for e in self.expenses:
+            trend[e.date] += e.amount
+        return sorted(trend.items())
+
+    def forecast_next_week(self):
+        daily_totals = defaultdict(float)
+        for e in self.expenses:
+            daily_totals[e.date] += e.amount
+        values = list(daily_totals.values())
+        avg = statistics.mean(values) if values else 0
+        forecast = [(datetime.today().date() + timedelta(days=i), avg) for i in range(1, 8)]
+        return forecast
+
+    def detect_spikes(self, threshold=1000):
+        spikes = []
+        for e in self.expenses:
+            if e.amount > threshold:
+                spikes.append(e)
+        return spikes
+
+    def report(self):
+        print("\n📊 Expense Report:")
+        for e in self.expenses:
+            print(f" - {e}")
+        print("\n📁 Category Summary:")
+        for cat, amt in self.summarize_by_category().items():
+            print(f"   {cat:<12}: ₹{amt:.2f}")
+        print("\n📈 Daily Trend:")
+        for date, amt in self.daily_trend():
+            print(f"   {date.strftime('%Y-%m-%d')}: ₹{amt:.2f}")
+        print("\n🔮 Forecast (Next 7 Days):")
+        for date, amt in self.forecast_next_week():
+            print(f"   {date.strftime('%Y-%m-%d')}: ₹{amt:.2f}")
+        print("\n⚠️ Spending Spikes:")
+        for e in self.detect_spikes():
+            print(f"   {e}")
+
+# Simulate usage
+tracker = ExpenseTracker()
+tracker.add_expense("Groceries", 850, datetime.today().date() - timedelta(days=3))
+tracker.add_expense("Transport", 120, datetime.today().date() - timedelta(days=2))
+tracker.add_expense("Dining", 1450, datetime.today().date() - timedelta(days=2))
+tracker.add_expense("Bills", 2200, datetime.today().date() - timedelta(days=1))
+tracker.add_expense("Entertainment", 600)
+tracker.add_expense("Groceries", 950)
+
+tracker.report()
