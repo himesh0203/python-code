@@ -1,0 +1,74 @@
+Here’s a complex yet professional Python code that demonstrates advanced concepts like multithreading, data structures, and API integration. It is designed to run seamlessly on online compilers.
+
+Code: Multithreaded Web Scraper with Data Processing
+Pythonimport threading
+import requests
+from bs4 import BeautifulSoup
+from queue import Queue
+
+# Thread-safe queue for URLs
+url_queue = Queue()
+
+# Shared dictionary to store results
+results = {}
+
+# Function to scrape a URL
+def scrape_url():
+    while not url_queue.empty():
+        url = url_queue.get()
+        try:
+            response = requests.get(url, timeout=5)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            title = soup.title.string if soup.title else "No Title"
+            results[url] = title
+        except Exception as e:
+            results[url] = f"Error: {e}"
+        finally:
+            url_queue.task_done()
+
+# List of URLs to scrape
+urls = [
+    "https://www.python.org",
+    "https://www.geeksforgeeks.org",
+    "https://realpython.com",
+    "https://www.wikipedia.org",
+    "https://www.github.com"
+]
+
+# Add URLs to the queue
+for url in urls:
+    url_queue.put(url)
+
+# Create and start threads
+threads = []
+for _ in range(5):  # 5 threads
+    thread = threading.Thread(target=scrape_url)
+    thread.start()
+    threads.append(thread)
+
+# Wait for all threads to finish
+for thread in threads:
+    thread.join()
+
+# Print results
+print("Scraping Results:")
+for url, title in results.items():
+    print(f"{url} -> {title}")
+
+
+Explanation of the Code:
+
+Multithreading: The code uses Python's threading module to create multiple threads for concurrent web scraping.
+Queue: A thread-safe Queue is used to manage URLs, ensuring no two threads process the same URL.
+Web Scraping: The requests library fetches the webpage, and BeautifulSoup parses the HTML to extract the title.
+Error Handling: Each thread handles exceptions gracefully, ensuring the program doesn't crash.
+Scalability: The code can handle a large number of URLs by simply adding them to the urls list.
+
+
+Why This Code is Complex and Professional?
+
+It demonstrates real-world problem-solving with multithreading and web scraping.
+It uses advanced libraries like requests and BeautifulSoup.
+It is efficient and scalable, making it suitable for professional use cases.
+
+You can copy and paste this code into any online Python compiler (e.g., Replit, OnlineGDB) and run it directly.
