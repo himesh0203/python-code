@@ -1,0 +1,85 @@
+import re
+import dateparser
+from datetime import datetime, timedelta
+
+WORKDAY_START = datetime.strptime("09:00", "%H:%M")
+WORKDAY_END = datetime.strptime("18:00", "%H:%M")
+
+class Task:
+    def __init__(self, description, start_time, duration):
+        self.description = description
+        self.start_time = start_time
+        self.end_time = start_time + duration
+        self.duration = duration
+
+    def __str__(self):
+        return f"{self.start_time.strftime('%H:%M')}–{self.end_time.strftime('%H:%M')} | {self.description} ({self.duration})"
+
+class DailyPlanner:
+    def __init__(self):
+        self.tasks = []
+
+    def parse_input(self, text):
+        time_match = re.search(r'\b(at|by)\s+([0-9]{1,2}(:[0-9]{2})?\s*(AM|PM)?)', text, re.IGNORECASE)
+        duration_match = re.search(r'(\d+)\s*(minutes|min|hours|hrs|hr)', text, re.IGNORECASE)
+
+        time_str = time_match.group(2) if time_match else None
+        duration_val = int(duration_match.group(1)) if duration_match else 30
+        duration_unit = duration_match.group(2).lower() if duration_match else "minutes"
+
+        duration = timedelta(minutes=duration_val if "hour" not in duration_unit else duration_val * 60)
+        start_time = dateparser.parse(time_str).replace(year=1900, month=1, day=1) if time_str else None
+
+        description = re.sub(r'\b(at|by)\s+[0-9]{1,2}(:[0-9]{2})?\s*(AM|PM)?', '', text, flags=re.IGNORECASE)
+        description = re.sub(r'\d+\s*(minutes|min|hours|hrs|hr)', '', description, flags=re.IGNORECASE).strip()
+
+        return description, start_time, duration
+
+    def has_conflict(self, start, end):
+        for task in self.tasks:
+            if start < task.end_time and end > task.start_time:
+                return True
+        return False
+
+    def schedule_task(self, text):
+        description, preferred_start, duration = self.parse_input(text)
+        if not preferred_start:
+            preferred_start = WORKDAY_START
+
+        proposed_start = max(preferred_start, WORKDAY_START)
+        proposed_end = proposed_start + duration
+
+        while proposed_end <= WORKDAY_END and self.has_conflict(proposed_start, proposed_end):
+            proposed_start += timedelta(minutes=15)
+            proposed_end = proposed_start + duration
+
+        if proposed_end <= WORKDAY_END:
+            self.tasks.append(Task(description, proposed_start, duration))
+            return True
+        else:
+            print(f"⚠️ Could not schedule: {description} (No available slot)")
+            return False
+
+    def generate_agenda(self):
+        self.tasks.sort(key=lambda t: t.start_time)
+        print("\n🗓️ Daily Agenda:")
+        print("-" * 50)
+        for task in self.tasks:
+            print(f" - {task}")
+        print("-" * 50)
+
+# Sample usage
+planner = DailyPlanner()
+inputs = [
+    "Call client at 10 AM for 30 minutes",
+    "Team meeting at 11 AM for 1 hour",
+    "Lunch break at 1 PM for 1 hour",
+    "Write report by 3 PM for 90 minutes",
+    "Review emails for 45 minutes",
+    "Plan tomorrow's agenda at 5 PM for 30 minutes"
+]
+
+for entry in inputs:
+    planner.schedule_task(entry)
+
+planner.generate_agenda()
