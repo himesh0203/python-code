@@ -1,0 +1,60 @@
+from datetime import datetime
+from collections import defaultdict
+
+# Sample expense data
+expenses = [
+    {"date": "2025-10-01", "category": "Groceries", "amount": 1200},
+    {"date": "2025-10-02", "category": "Transport", "amount": 300},
+    {"date": "2025-10-03", "category": "Dining", "amount": 850},
+    {"date": "2025-10-04", "category": "Groceries", "amount": 950},
+    {"date": "2025-10-05", "category": "Entertainment", "amount": 1500},
+    {"date": "2025-10-06", "category": "Dining", "amount": 400},
+    {"date": "2025-10-07", "category": "Transport", "amount": 250},
+    {"date": "2025-10-08", "category": "Bills", "amount": 2200},
+    {"date": "2025-10-09", "category": "Groceries", "amount": 1100},
+]
+
+# Monthly budget per category
+budget = {
+    "Groceries": 3000,
+    "Transport": 1000,
+    "Dining": 1500,
+    "Entertainment": 1000,
+    "Bills": 2500
+}
+
+# Aggregation
+def analyze_expenses(expenses, budget):
+    category_totals = defaultdict(float)
+    overspending = []
+
+    for entry in expenses:
+        category = entry["category"]
+        amount = entry["amount"]
+        category_totals[category] += amount
+
+    print("\n📊 Expense Summary:")
+    print("-" * 50)
+    for category, total in category_totals.items():
+        limit = budget.get(category, None)
+        status = ""
+        if limit:
+            if total > limit:
+                status = "⚠️ Over Budget"
+                overspending.append((category, total, limit))
+            else:
+                status = "✅ Within Budget"
+        else:
+            status = "ℹ️ No Budget Set"
+        print(f"{category:<15} | ₹{total:>7.2f} | {status}")
+    print("-" * 50)
+
+    if overspending:
+        print("\n🚨 Overspending Detected:")
+        for cat, spent, limit in overspending:
+            print(f"- {cat}: Spent ₹{spent:.2f}, Budget ₹{limit:.2f} (Over by ₹{spent - limit:.2f})")
+    else:
+        print("\n✅ All categories within budget.")
+
+# Run analysis
+analyze_expenses(expenses, budget)
