@@ -1,0 +1,9 @@
+# AI-powered summarizer using HuggingFace Transformers
+from transformers import pipeline
+
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+text = """
+Python continues to dominate the programming world, evolving in ways that keep it relevant for developers and businesses alike. In 2025, Python is not just a coding language; it's a bridge between innovation and application, shaping industries from artificial intelligence to web development.
+"""
+summary = summarizer(text, max_length=50, min_length=25, do_sample=False)
+print("🧠 Summary:", summary[0]['summary_text'])
