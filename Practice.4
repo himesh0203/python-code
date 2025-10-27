@@ -1,0 +1,147 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Space Shooter")
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+
+# Player class
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(BLUE)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = SCREEN_WIDTH // 2
+        self.rect.bottom = SCREEN_HEIGHT - 10
+        self.speed = 5
+
+    def update(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.rect.x -= self.speed
+        if keys[pygame.K_RIGHT]:
+            self.rect.x += self.speed
+
+        # Keep player within screen bounds
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > SCREEN_WIDTH:
+            self.rect.right = SCREEN_WIDTH
+
+    def shoot(self):
+        bullet = Bullet(self.rect.centerx, self.rect.top)
+        all_sprites.add(bullet)
+        bullets.add(bullet)
+
+# Enemy class
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((40, 40))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(SCREEN_WIDTH - self.rect.width)
+        self.rect.y = random.randrange(-100, -40)
+        self.speed_y = random.randrange(1, 4)
+
+    def update(self):
+        self.rect.y += self.speed_y
+        if self.rect.top > SCREEN_HEIGHT:
+            self.rect.x = random.randrange(SCREEN_WIDTH - self.rect.width)
+            self.rect.y = random.randrange(-100, -40)
+            self.speed_y = random.randrange(1, 4)
+
+# Bullet class
+class Bullet(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((10, 20))
+        self.image.fill(WHITE)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = x
+        self.rect.bottom = y
+        self.speed_y = -10
+
+    def update(self):
+        self.rect.y += self.speed_y
+        if self.rect.bottom < 0:
+            self.kill() # Remove bullet when it goes off-screen
+
+# Game setup
+all_sprites = pygame.sprite.Group()
+enemies = pygame.sprite.Group()
+bullets = pygame.sprite.Group()
+
+player = Player()
+all_sprites.add(player)
+
+for i in range(8): # Number of initial enemies
+    enemy = Enemy()
+    all_sprites.add(enemy)
+    enemies.add(enemy)
+
+# Game loop
+running = True
+clock = pygame.time.Clock()
+FPS = 60
+
+while running:
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.shoot()
+
+    # Update
+    all_sprites.update()
+
+    # Check for collisions (bullets and enemies)
+    hits = pygame.sprite.groupcollide(enemies, bullets, True, True)
+    for hit in hits:
+        enemy = Enemy() # Spawn a new enemy when one is hit
+        all_sprites.add(enemy)
+        enemies.add(enemy)
+
+    # Check for collisions (player and enemies)
+    player_hits = pygame.sprite.spritecollide(player, enemies, False)
+    if player_hits:
+        running = False # Game over if player is hit
+
+    # Render
+    screen.fill(BLACK)
+    all_sprites.draw(screen)
+
+    # Flip the display
+    pygame.display.flip()
+
+    # Control frame rate
+    clock.tick(FPS)
+
+pygame.quit()
+
+
+
+
+
+To run this in VS Code:
+Install Pygame: Open your VS Code terminal and run:
+Code
+
+    pip install pygame
+Save the code: Save the code above as a Python file (e.g., space_shooter.py).
+Run the file: Open the Python file in VS Code and click the "Run Python File" play button in the top-right corner of the editor, or right-click in the editor and select "Run Python File in Terminal." 
