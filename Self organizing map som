@@ -1,0 +1,88 @@
+import math
+import random
+
+class SOM:
+    def __init__(self, input_dim, map_size, learning_rate=0.1, radius=5):
+        """
+        Initializes the Self-Organizing Map.
+
+        Args:
+            input_dim (int): Dimensionality of the input data.
+            map_size (tuple): Dimensions of the SOM grid (e.g., (10, 10)).
+            learning_rate (float): Initial learning rate for weight updates.
+            radius (float): Initial neighborhood radius.
+        """
+        self.input_dim = input_dim
+        self.map_rows, self.map_cols = map_size
+        self.learning_rate = learning_rate
+        self.initial_radius = radius
+        self.weights = [[[random.uniform(0, 1) for _ in range(input_dim)]
+                         for _ in range(self.map_cols)]
+                        for _ in range(self.map_rows)]
+
+    def _euclidean_distance(self, vec1, vec2):
+        """Calculates the Euclidean distance between two vectors."""
+        return math.sqrt(sum([(a - b) ** 2 for a, b in zip(vec1, vec2)]))
+
+    def _find_bmu(self, input_vector):
+        """Finds the Best Matching Unit (BMU) for a given input vector."""
+        min_dist = float('inf')
+        bmu_coords = (0, 0)
+
+        for r in range(self.map_rows):
+            for c in range(self.map_cols):
+                node_weights = self.weights[r][c]
+                dist = self._euclidean_distance(input_vector, node_weights)
+                if dist < min_dist:
+                    min_dist = dist
+                    bmu_coords = (r, c)
+        return bmu_coords
+
+    def _neighborhood_function(self, bmu_coords, node_coords, current_radius):
+        """Calculates the neighborhood influence based on distance from BMU."""
+        bmu_r, bmu_c = bmu_coords
+        node_r, node_c = node_coords
+        distance_squared = (bmu_r - node_r)**2 + (bmu_c - node_c)**2
+        return math.exp(-distance_squared / (2 * (current_radius**2)))
+
+    def train(self, data, num_epochs):
+        """Trains the SOM with the given data."""
+        for epoch in range(num_epochs):
+            current_learning_rate = self.learning_rate * (1 - epoch / num_epochs)
+            current_radius = self.initial_radius * (1 - epoch / num_epochs)
+
+            for input_vector in data:
+                bmu_r, bmu_c = self._find_bmu(input_vector)
+
+                for r in range(self.map_rows):
+                    for c in range(self.map_cols):
+                        influence = self._neighborhood_function((bmu_r, bmu_c), (r, c), current_radius)
+                        for i in range(self.input_dim):
+                            self.weights[r][c][i] += current_learning_rate * influence * \
+                                                     (input_vector[i] - self.weights[r][c][i])
+
+    def get_clusters(self, data):
+        """Assigns data points to their corresponding BMUs (clusters)."""
+        clusters = { (r, c): [] for r in range(self.map_rows) for c in range(self.map_cols) }
+        for input_vector in data:
+            bmu_coords = self._find_bmu(input_vector)
+            clusters[bmu_coords].append(input_vector)
+        return clusters
+
+# Example Usage:
+if __name__ == "__main__":
+    # Sample 2D data for clustering
+    data = [
+        [0.1, 0.2], [0.15, 0.25], [0.05, 0.18],
+        [0.8, 0.9], [0.75, 0.88], [0.82, 0.95],
+        [0.4, 0.5], [0.45, 0.52], [0.38, 0.47]
+    ]
+
+    som = SOM(input_dim=2, map_size=(5, 5), learning_rate=0.5, radius=2)
+    som.train(data, num_epochs=100)
+
+    clusters = som.get_clusters(data)
+
+    for coords, points in clusters.items():
+        if points:
+            print(f"Cluster at {coords}: {points}")
