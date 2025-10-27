@@ -1,0 +1,82 @@
+import random
+from collections import defaultdict
+
+class MarkovTextGenerator:
+    def __init__(self, corpus):
+        """
+        Initializes the MarkovTextGenerator with a given text corpus.
+        Args:
+            corpus (str): The input text to build the Markov chain from.
+        """
+        self.corpus = corpus
+        self.word_map = self._build_word_map()
+
+    def _build_word_map(self):
+        """
+        Builds the Markov chain word map from the corpus.
+        The map stores each word as a key and a list of words that follow it as values.
+        """
+        words = self.corpus.split()
+        if len(words) < 2:
+            return {}
+
+        word_map = defaultdict(list)
+        for i in range(len(words) - 1):
+            current_word = words[i]
+            next_word = words[i+1]
+            word_map[current_word].append(next_word)
+        return word_map
+
+    def generate_text(self, start_word=None, length=50):
+        """
+        Generates text using the built Markov chain.
+        Args:
+            start_word (str, optional): The word to start the generation from.
+                                        If None, a random word from the corpus is chosen.
+            length (int): The desired length of the generated text in words.
+        Returns:
+            str: The generated text.
+        """
+        if not self.word_map:
+            return "Corpus too short to build a word map."
+
+        if start_word and start_word not in self.word_map:
+            print(f"Warning: '{start_word}' not found in corpus. Choosing a random start word.")
+            start_word = None
+
+        if start_word is None:
+            current_word = random.choice(list(self.word_map.keys()))
+        else:
+            current_word = start_word
+
+        generated_words = [current_word]
+
+        for _ in range(length - 1):
+            if current_word in self.word_map and self.word_map[current_word]:
+                next_word = random.choice(self.word_map[current_word])
+                generated_words.append(next_word)
+                current_word = next_word
+            else:
+                # If a word has no followers, try to find a new starting point
+                current_word = random.choice(list(self.word_map.keys()))
+                generated_words.append(current_word) # Add the new start word
+        return " ".join(generated_words)
+
+# Example Usage:
+if __name__ == "__main__":
+    sample_corpus = """
+    The quick brown fox jumps over the lazy dog. The dog barks loudly.
+    The fox is cunning and swift. Birds sing in the morning.
+    The morning dew glistens on the grass.
+    """
+
+    generator = MarkovTextGenerator(sample_corpus)
+
+    print("Generated Text (random start):")
+    print(generator.generate_text(length=20))
+
+    print("\nGenerated Text (starting with 'The'):")
+    print(generator.generate_text(start_word="The", length=15))
+
+    print("\nGenerated Text (starting with 'Birds'):")
+    print(generator.generate_text(start_word="Birds", length=10))
