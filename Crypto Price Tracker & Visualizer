@@ -1,0 +1,61 @@
+import asyncio
+import aiohttp
+import matplotlib.pyplot as plt
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+import time
+
+# List of cryptocurrencies to track
+CRYPTOCURRENCIES = ['bitcoin', 'ethereum', 'solana', 'cardano', 'dogecoin']
+API_URL = 'https://api.coingecko.com/api/v3/simple/price'
+
+# Asynchronous function to fetch price data
+async def fetch_price(session, coin):
+    params = {
+        'ids': coin,
+        'vs_currencies': 'usd'
+    }
+    async with session.get(API_URL, params=params) as response:
+        data = await response.json()
+        return coin, data[coin]['usd']
+
+# Fetch all prices concurrently
+async def fetch_all_prices():
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_price(session, coin) for coin in CRYPTOCURRENCIES]
+        return await asyncio.gather(*tasks)
+
+# Threaded function to simulate heavy computation
+def simulate_computation(prices):
+    time.sleep(1)  # Simulate delay
+    return {coin: price * 1.05 for coin, price in prices.items()}  # Add 5% markup
+
+# Plotting function
+def plot_prices(prices, timestamp):
+    coins = list(prices.keys())
+    values = list(prices.values())
+    plt.figure(figsize=(10, 6))
+    plt.bar(coins, values, color='skyblue')
+    plt.title(f'Crypto Prices at {timestamp}')
+    plt.xlabel('Cryptocurrency')
+    plt.ylabel('Price in USD')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+# Main orchestration
+def main():
+    loop = asyncio.get_event_loop()
+    raw_data = loop.run_until_complete(fetch_all_prices())
+    prices = {coin: price for coin, price in raw_data}
+
+    # Run computation in a separate thread
+    with ThreadPoolExecutor() as executor:
+        future = executor.submit(simulate_computation, prices)
+        processed_prices = future.result()
+
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    plot_prices(processed_prices, timestamp)
+
+if __name__ == '__main__':
+    main()
