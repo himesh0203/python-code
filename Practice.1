@@ -1,0 +1,104 @@
+Install Pygame.
+Code
+
+    pip install pygame
+
+
+
+import pygame
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Simple Platformer")
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
+
+# Player properties
+player_width = 50
+player_height = 50
+player_x = 50
+player_y = SCREEN_HEIGHT - player_height - 50  # Start above a platform
+player_speed = 5
+jump_strength = -15
+gravity = 0.8
+player_vel_y = 0
+is_jumping = False
+
+# Platform properties
+platform_width = 200
+platform_height = 20
+platform_x = 100
+platform_y = SCREEN_HEIGHT - 50
+
+# Game loop
+running = True
+clock = pygame.time.Clock()
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and not is_jumping:
+                player_vel_y = jump_strength
+                is_jumping = True
+
+    # Player movement
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT]:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT]:
+        player_x += player_speed
+
+    # Apply gravity
+    player_vel_y += gravity
+    player_y += player_vel_y
+
+    # Ground collision (simple)
+    if player_y >= SCREEN_HEIGHT - player_height:
+        player_y = SCREEN_HEIGHT - player_height
+        player_vel_y = 0
+        is_jumping = False
+
+    # Platform collision
+    player_rect = pygame.Rect(player_x, player_y, player_width, player_height)
+    platform_rect = pygame.Rect(platform_x, platform_y, platform_width, platform_height)
+
+    if player_rect.colliderect(platform_rect) and player_vel_y > 0:
+        player_y = platform_y - player_height
+        player_vel_y = 0
+        is_jumping = False
+
+    # Clear screen
+    screen.fill(BLACK)
+
+    # Draw player
+    pygame.draw.rect(screen, BLUE, (player_x, player_y, player_width, player_height))
+
+    # Draw platform
+    pygame.draw.rect(screen, GREEN, (platform_x, platform_y, platform_width, platform_height))
+
+    # Update display
+    pygame.display.flip()
+
+    # Cap frame rate
+    clock.tick(60)
+
+pygame.quit()
+
+
+
+To run this code in VS Code:
+Save the code as a .py file (e.g., platformer_game.py).
+Open the file in VS Code.
+Ensure you have the Python extension installed.
+You can run the file by clicking the "Run Python File" play button in the top-right corner, or by right-clicking in the editor and selecting "Run Python File in Terminal."
