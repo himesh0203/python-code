@@ -1,0 +1,84 @@
+def start_game():
+    print("Welcome, brave adventurer, to the Quest for the Lost Artifact!")
+    print("Your journey begins at the entrance of the Whispering Woods.")
+    print("A legendary artifact, the 'Sunstone of Eldoria', is rumored to be hidden deep within.")
+    print("Your goal is to find it and return to tell the tale.")
+    print("\nWhat do you do?")
+    print("1. Enter the Whispering Woods.")
+    print("2. Look around the entrance.")
+    print("3. Turn back.")
+    choice = input("Enter your choice (1, 2, or 3): ")
+    handle_choice_start(choice)
+
+def handle_choice_start(choice):
+    if choice == '1':
+        whispering_woods()
+    elif choice == '2':
+        print("\nYou see ancient runes carved into the trees, but no obvious clues.")
+        start_game()
+    elif choice == '3':
+        print("\nYou decide the quest is too dangerous and return home. The Sunstone remains lost.")
+    else:
+        print("Invalid choice. Please try again.")
+        start_game()
+
+def whispering_woods():
+    print("\nYou venture into the Whispering Woods. The trees are tall and ancient, their leaves rustling with unseen whispers.")
+    print("You come to a fork in the path.")
+    print("\nWhich way do you go?")
+    print("1. Take the left path (towards the 'Glimmering Stream').")
+    print("2. Take the right path (towards the 'Shadowy Cave').")
+    choice = input("Enter your choice (1 or 2): ")
+    handle_choice_woods(choice)
+
+def handle_choice_woods(choice):
+    if choice == '1':
+        glimmering_stream()
+    elif choice == '2':
+        shadowy_cave()
+    else:
+        print("Invalid choice. Please try again.")
+        whispering_woods()
+
+def glimmering_stream():
+    print("\nYou follow the left path and arrive at a shimmering stream.")
+    print("The water is crystal clear, and you see something glinting at the bottom.")
+    print("\nWhat do you do?")
+    print("1. Reach into the stream to retrieve the object.")
+    print("2. Look for another way to cross the stream.")
+    choice = input("Enter your choice (1 or 2): ")
+    if choice == '1':
+        print("\nYou retrieve a small, smooth pebble. It's beautiful, but not the Sunstone.")
+        print("You must continue your search.")
+        shadowy_cave() # Leads to the other path to continue the quest
+    elif choice == '2':
+        print("\nYou find a fallen log and carefully cross the stream, continuing towards the Shadowy Cave.")
+        shadowy_cave()
+    else:
+        print("Invalid choice. Please try again.")
+        glimmering_stream()
+
+def shadowy_cave():
+    print("\nYou arrive at the entrance of a dark, shadowy cave. A chill wind blows from within.")
+    print("You hear a faint, rhythmic hum.")
+    print("\nWhat do you do?")
+    print("1. Enter the cave.")
+    print("2. Turn back and explore the woods further.")
+    choice = input("Enter your choice (1 or 2): ")
+    if choice == '1':
+        inside_cave()
+    elif choice == '2':
+        print("\nYou decide the cave is too dangerous and return to the fork in the path.")
+        whispering_woods()
+    else:
+        print("Invalid choice. Please try again.")
+        shadowy_cave()
+
+def inside_cave():
+    print("\nInside the cave, the air is thick with ancient magic. You see a pedestal in the center, glowing faintly.")
+    print("Upon it rests the magnificent Sunstone of Eldoria!")
+    print("Congratulations, brave adventurer! You have found the Lost Artifact!")
+    print("You carefully retrieve the Sunstone and make your way out of the cave, victorious.")
+    print("THE END")
+
+start_game()
