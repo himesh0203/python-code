@@ -1,0 +1,67 @@
+from datetime import datetime
+from collections import defaultdict
+import random
+
+# Simulated file metadata
+class File:
+    def __init__(self, name, size_kb, file_type, created_at=None):
+        self.name = name
+        self.size_kb = size_kb
+        self.file_type = file_type
+        self.created_at = created_at or datetime.now()
+
+    def __str__(self):
+        return f"{self.name} ({self.file_type}, {self.size_kb}KB, {self.created_at.strftime('%Y-%m-%d %H:%M:%S')})"
+
+# File organizer class
+class FileOrganizer:
+    def __init__(self):
+        self.files = []
+        self.categories = defaultdict(list)
+
+    def add_file(self, file):
+        self.files.append(file)
+        self.categories[file.file_type].append(file)
+
+    def organize(self):
+        print("\n📁 Organized Files by Type:")
+        for file_type, files in self.categories.items():
+            print(f"\n🔸 {file_type.upper()} ({len(files)} files):")
+            for f in sorted(files, key=lambda x: x.created_at):
+                print(f"  - {f}")
+
+    def largest_files(self, top_n=3):
+        print(f"\n📦 Top {top_n} Largest Files:")
+        largest = sorted(self.files, key=lambda x: x.size_kb, reverse=True)[:top_n]
+        for f in largest:
+            print(f"  - {f}")
+
+    def summary(self):
+        print("\n📊 Summary Report:")
+        total_size = sum(f.size_kb for f in self.files)
+        print(f"Total Files: {len(self.files)}")
+        print(f"Total Size: {total_size} KB")
+        for file_type in self.categories:
+            count = len(self.categories[file_type])
+            print(f"  - {file_type}: {count} files")
+
+# Simulated file creation
+def generate_sample_files():
+    types = ["document", "image", "video", "audio", "archive"]
+    names = ["report", "photo", "movie", "song", "backup"]
+    files = []
+    for _ in range(15):
+        t = random.choice(types)
+        n = random.choice(names)
+        size = random.randint(100, 5000)
+        files.append(File(f"{n}_{random.randint(1,100)}.{t[:3]}", size, t))
+    return files
+
+# Run the organizer
+organizer = FileOrganizer()
+for f in generate_sample_files():
+    organizer.add_file(f)
+
+organizer.organize()
+organizer.largest_files()
+organizer.summary()
