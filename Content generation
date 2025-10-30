@@ -1,0 +1,16 @@
+    import schedule
+    import time
+
+    def post_to_social_media(platform, content):
+        print(f"Posting to {platform}: {content}")
+        # Add actual social media API calls here
+
+    # Schedule a post for a specific time
+    schedule.every().day.at("10:30").do(post_to_social_media, "Twitter", "Good morning! #PythonAutomation")
+
+    # Schedule a post every hour
+    schedule.every().hour.do(post_to_social_media, "LinkedIn", "New insights on AI.")
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
