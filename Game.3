@@ -1,0 +1,74 @@
+import time
+import random
+
+class Learner:
+    def __init__(self, name, learning_style="visual"):
+        self.name = name
+        self.learning_style = learning_style
+        self.knowledge_level = {}  # Subject: Level (0-100)
+        self.engagement_history = [] # Timestamp, Engagement_Score
+        self.preferences = {} # Content_type: Preference_score
+
+    def update_knowledge(self, subject, score):
+        self.knowledge_level[subject] = score
+
+    def record_engagement(self, score):
+        self.engagement_history.append((time.time(), score))
+
+    def update_preferences(self, content_type, score):
+        self.preferences[content_type] = score
+
+class ContentModule:
+    def __init__(self, title, subject, difficulty, content_type="text"):
+        self.title = title
+        self.subject = subject
+        self.difficulty = difficulty
+        self.content_type = content_type # e.g., text, video, interactive
+
+    def get_content(self):
+        # Placeholder for actual content retrieval
+        return f"Content for '{self.title}' ({self.content_type})"
+
+class AdaptiveLearningSystem:
+    def __init__(self, learners, content_modules):
+        self.learners = learners
+        self.content_modules = content_modules
+
+    def recommend_content(self, learner):
+        suitable_content = []
+        for module in self.content_modules:
+            # Basic matching for demonstration
+            if module.subject in learner.knowledge_level and \
+               learner.knowledge_level[module.subject] < 80 and \
+               module.difficulty <= (learner.knowledge_level[module.subject] // 10 + 1):
+                suitable_content.append(module)
+        
+        # Further refine based on learning style and preferences
+        if learner.learning_style == "visual":
+            suitable_content = [c for c in suitable_content if c.content_type == "video" or c.content_type == "interactive"]
+        
+        # Sort by difficulty or other metrics if needed
+        return random.choice(suitable_content) if suitable_content else None
+
+# --- Example Usage ---
+if __name__ == "__main__":
+    learner1 = Learner("Alice", learning_style="auditory")
+    learner1.update_knowledge("Mathematics", 60)
+    learner1.update_knowledge("History", 40)
+    learner1.update_preferences("video", 0.8)
+
+    content_modules = [
+        ContentModule("Algebra Basics", "Mathematics", 3, "text"),
+        ContentModule("Pythagorean Theorem", "Mathematics", 5, "video"),
+        ContentModule("World War II Overview", "History", 4, "text"),
+        ContentModule("Ancient Civilizations", "History", 2, "interactive")
+    ]
+
+    system = AdaptiveLearningSystem([learner1], content_modules)
+
+    recommended = system.recommend_content(learner1)
+    if recommended:
+        print(f"{learner1.name}, we recommend: {recommended.title} ({recommended.content_type})")
+        learner1.record_engagement(random.uniform(0.5, 1.0)) # Simulate engagement
+    else:
+        print(f"No suitable content found for {learner1.name}.")
