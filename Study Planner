@@ -1,0 +1,32 @@
+def create_personalized_plan(subjects_data, total_study_hours, exam_date):
+    study_plan = {}
+    total_complexity_score = sum(subject['complexity'] for subject in subjects_data)
+
+    for subject in subjects_data:
+        subject_name = subject['name']
+        complexity = subject['complexity'] # e.g., 1 for easy, 3 for difficult
+
+        # Allocate study hours proportionally to complexity
+        # This is a simple AI rule for personalization
+        allocated_hours = (complexity / total_complexity_score) * total_study_hours
+        
+        # Further refine based on specific rules (e.g., closer to exam, more hours)
+        # This part would involve calculating days until exam, etc.
+        
+        study_plan[subject_name] = f"{allocated_hours:.2f} hours per day/week (adjust based on exam proximity)"
+
+    return study_plan
+
+# Example Usage
+subjects = [
+    {'name': 'Math', 'complexity': 3},  # Difficult
+    {'name': 'History', 'complexity': 2}, # Intermediate
+    {'name': 'English', 'complexity': 1}  # Easy
+]
+total_study_time_per_week = 20 # hours
+exam_date = "2026-01-15" # Placeholder
+
+plan = create_personalized_plan(subjects, total_study_time_per_week, exam_date)
+print("Personalized Study Plan:")
+for subject, details in plan.items():
+    print(f"- {subject}: {details}")
