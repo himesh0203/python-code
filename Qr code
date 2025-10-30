@@ -1,0 +1,42 @@
+import qrcode
+
+# Data to be encoded in the QR code
+data = "This is the information to be encoded in the QR code."
+
+# Create a QR code image
+# The make() function automatically handles version, error correction, box_size, and border.
+img = qrcode.make(data)
+
+# Save the QR code image to a file
+img.save("my_qr_code.png")
+
+print("QR code generated and saved as my_qr_code.png")
+
+
+
+
+import qrcode
+from qrcode.constants import ERROR_CORRECT_H
+
+# Data to be encoded
+data = "https://www.example.com"
+
+# Create a QRCode object with custom parameters
+qr = qrcode.QRCode(
+    version=1,  # Controls the size of the QR Code (1 to 40)
+    error_correction=ERROR_CORRECT_H,  # High error correction (about 30% errors corrected)
+    box_size=10,  # Number of pixels per "box" of the QR code
+    border=4,  # Thickness of the border in boxes
+)
+
+# Add data to the QR code
+qr.add_data(data)
+qr.make(fit=True)
+
+# Create an image from the QR code object
+img = qr.make_image(fill_color="black", back_color="white")
+
+# Save the QR code image
+img.save("custom_qr_code.png")
+
+print("Custom QR code generated and saved as custom_qr_code.png")
