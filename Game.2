@@ -1,0 +1,62 @@
+# main.py
+
+class User:
+    def __init__(self, username, learning_style, prior_knowledge, goals):
+        self.username = username
+        self.learning_style = learning_style
+        self.prior_knowledge = prior_knowledge
+        self.goals = goals
+        self.progress = {} # To store progress for different topics
+
+class LearningPathGenerator:
+    def __init__(self):
+        self.resources = self._load_resources() # Simulate loading a database of resources
+
+    def _load_resources(self):
+        # In a real project, this would load from a database or API
+        return {
+            "Python Basics": ["Intro to Python video", "Python syntax article", "Basic exercises"],
+            "Data Structures": ["LinkedList tutorial", "Array vs List comparison"],
+            # ... more resources
+        }
+
+    def generate_path(self, user):
+        # This is where the core AI/ML logic would go
+        # For a basic ideathon, you can use rule-based logic
+        path = []
+        if "Python Basics" in user.goals:
+            path.extend(self.resources["Python Basics"])
+        if "Data Structures" in user.goals and "Python Basics" in user.progress:
+            path.extend(self.resources["Data Structures"])
+        return path
+
+    def recommend_resource(self, user, topic):
+        # More sophisticated recommendation based on learning style
+        if user.learning_style == "visual" and topic in self.resources:
+            return [r for r in self.resources[topic] if "video" in r.lower()]
+        elif topic in self.resources:
+            return self.resources[topic]
+        return []
+
+    def track_progress(self, user, topic, completed_resource):
+        if topic not in user.progress:
+            user.progress[topic] = []
+        user.progress[topic].append(completed_resource)
+        print(f"{user.username} completed {completed_resource} in {topic}.")
+
+# Example Usage
+if __name__ == "__main__":
+    generator = LearningPathGenerator()
+    user1 = User("Alice", "visual", ["basic programming"], ["Python Basics", "Data Structures"])
+
+    print(f"Generating path for {user1.username}...")
+    path = generator.generate_path(user1)
+    print("Recommended path:", path)
+
+    # Simulate progress
+    generator.track_progress(user1, "Python Basics", "Intro to Python video")
+    generator.track_progress(user1, "Python Basics", "Python syntax article")
+
+    print(f"\nRecommending resources for Data Structures for {user1.username}...")
+    recommended_ds = generator.recommend_resource(user1, "Data Structures")
+    print("Recommended Data Structures resources:", recommended_ds)
