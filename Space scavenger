@@ -1,0 +1,134 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Game settings
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+PLAYER_WIDTH = 50
+PLAYER_HEIGHT = 70
+OBSTACLE_WIDTH = 60
+OBSTACLE_HEIGHT = 60
+COLLECTIBLE_SIZE = 30
+GAME_SPEED = 5
+LANE_WIDTH = SCREEN_WIDTH // 3
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BLUE = (0, 0, 255)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+
+# Set up the display
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Space Scavenger")
+
+# Player class
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
+        self.image.fill(BLUE)  # Player character
+        self.rect = self.image.get_rect()
+        self.rect.centerx = SCREEN_WIDTH // 2
+        self.rect.bottom = SCREEN_HEIGHT - 20
+        self.lane = 1  # 0: left, 1: center, 2: right
+
+    def update(self, keys):
+        if keys[pygame.K_LEFT] and self.lane > 0:
+            self.lane -= 1
+            self.rect.centerx = (self.lane * LANE_WIDTH) + (LANE_WIDTH // 2)
+        if keys[pygame.K_RIGHT] and self.lane < 2:
+            self.lane += 1
+            self.rect.centerx = (self.lane * LANE_WIDTH) + (LANE_WIDTH // 2)
+
+# Obstacle class
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((OBSTACLE_WIDTH, OBSTACLE_HEIGHT))
+        self.image.fill(RED)  # Obstacle color
+        self.rect = self.image.get_rect()
+        self.rect.x = random.choice([0, 1, 2]) * LANE_WIDTH + (LANE_WIDTH - OBSTACLE_WIDTH) // 2
+        self.rect.y = -OBSTACLE_HEIGHT
+
+    def update(self):
+        self.rect.y += GAME_SPEED
+        if self.rect.top > SCREEN_HEIGHT:
+            self.kill()
+
+# Collectible class (e.g., Space Gems)
+class Collectible(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((COLLECTIBLE_SIZE, COLLECTIBLE_SIZE))
+        self.image.fill(YELLOW)  # Collectible color
+        self.rect = self.image.get_rect()
+        self.rect.x = random.choice([0, 1, 2]) * LANE_WIDTH + (LANE_WIDTH - COLLECTIBLE_SIZE) // 2
+        self.rect.y = -COLLECTIBLE_SIZE
+
+    def update(self):
+        self.rect.y += GAME_SPEED
+        if self.rect.top > SCREEN_HEIGHT:
+            self.kill()
+
+# Game loop
+def game():
+    player = Player()
+    all_sprites = pygame.sprite.Group()
+    obstacles = pygame.sprite.Group()
+    collectibles = pygame.sprite.Group()
+
+    all_sprites.add(player)
+
+    running = True
+    score = 0
+    clock = pygame.time.Clock()
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                player.update(pygame.key.get_pressed())
+
+        # Spawn obstacles and collectibles
+        if random.randint(1, 100) < 5:  # Adjust spawn rate
+            obstacle = Obstacle()
+            all_sprites.add(obstacle)
+            obstacles.add(obstacle)
+        if random.randint(1, 100) < 7:  # Adjust spawn rate
+            collectible = Collectible()
+            all_sprites.add(collectible)
+            collectibles.add(collectible)
+
+        # Update
+        all_sprites.update()
+
+        # Collision detection (player and obstacles)
+        if pygame.sprite.spritecollideany(player, obstacles):
+            running = False  # Game Over
+
+        # Collision detection (player and collectibles)
+        collected_items = pygame.sprite.spritecollide(player, collectibles, True)
+        score += len(collected_items) * 10  # Each collected item adds 10 points
+
+        # Draw
+        screen.fill(BLACK)  # Space background
+        all_sprites.draw(screen)
+
+        # Display score
+        font = pygame.font.Font(None, 36)
+        text = font.render(f"Score: {score}", True, WHITE)
+        screen.blit(text, (10, 10))
+
+        pygame.display.flip()
+        clock.tick(60)
+
+    pygame.quit()
+
+if __name__ == "__main__":
+    game()
