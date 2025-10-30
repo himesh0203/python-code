@@ -1,0 +1,52 @@
+def start_game():
+    """Initializes and starts the text adventure game."""
+    print("Welcome to the Enchanted Forest Adventure!")
+    print("You find yourself at the edge of a mysterious forest.")
+    print("What do you do?")
+    current_location = "forest_edge"
+    play_game(current_location)
+
+def play_game(location):
+    """Manages the game flow based on the current location."""
+    while True:
+        if location == "forest_edge":
+            print("\nOptions: (1) Enter the forest, (2) Look around, (3) Go home")
+            choice = input("Enter your choice: ").strip()
+            if choice == "1":
+                location = "deep_forest"
+            elif choice == "2":
+                print("You see ancient trees and a faint path leading deeper.")
+            elif choice == "3":
+                print("You decide the forest is too dangerous and return home. Game Over.")
+                break
+            else:
+                print("Invalid choice. Try again.")
+        elif location == "deep_forest":
+            print("\nYou are deep within the forest. The air is thick with magic.")
+            print("Options: (1) Follow the path, (2) Investigate strange sound, (3) Go back to the edge")
+            choice = input("Enter your choice: ").strip()
+            if choice == "1":
+                location = "ancient_ruins"
+            elif choice == "2":
+                print("You hear a rustling in the bushes, but find nothing. You feel watched.")
+            elif choice == "3":
+                location = "forest_edge"
+            else:
+                print("Invalid choice. Try again.")
+        elif location == "ancient_ruins":
+            print("\nYou discover ancient ruins, overgrown with vines. A faint glow emanates from within.")
+            print("Options: (1) Enter the ruins, (2) Search for treasure, (3) Return to deep forest")
+            choice = input("Enter your choice: ").strip()
+            if choice == "1":
+                print("You enter the ruins and find a magical artifact! You win! Game Over.")
+                break
+            elif choice == "2":
+                print("You search for treasure but only find old bones. A trap springs! You're caught! Game Over.")
+                break
+            elif choice == "3":
+                location = "deep_forest"
+            else:
+                print("Invalid choice. Try again.")
+
+if __name__ == "__main__":
+    start_game()
