@@ -1,0 +1,125 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+
+# Player properties
+PLAYER_WIDTH = 50
+PLAYER_HEIGHT = 80
+PLAYER_SPEED = 5
+PLAYER_JUMP_HEIGHT = 15
+GRAVITY = 1
+
+# Obstacle properties
+OBSTACLE_WIDTH = 70
+OBSTACLE_HEIGHT = 100
+OBSTACLE_SPEED = 7
+
+# Game setup
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Endless Runner")
+
+clock = pygame.time.Clock()
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface([PLAYER_WIDTH, PLAYER_HEIGHT])
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.centerx = SCREEN_WIDTH // 4
+        self.rect.bottom = SCREEN_HEIGHT - 50
+        self.vel_y = 0
+        self.is_jumping = False
+
+    def update(self):
+        # Apply gravity
+        self.vel_y += GRAVITY
+        self.rect.y += self.vel_y
+
+        # Prevent falling through the floor
+        if self.rect.bottom >= SCREEN_HEIGHT - 50:
+            self.rect.bottom = SCREEN_HEIGHT - 50
+            self.is_jumping = False
+            self.vel_y = 0
+
+    def jump(self):
+        if not self.is_jumping:
+            self.is_jumping = True
+            self.vel_y = -PLAYER_JUMP_HEIGHT
+
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface([OBSTACLE_WIDTH, OBSTACLE_HEIGHT])
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.x = SCREEN_WIDTH
+        self.rect.bottom = SCREEN_HEIGHT - 50
+
+    def update(self):
+        self.rect.x -= OBSTACLE_SPEED
+        if self.rect.right < 0:
+            self.kill() # Remove obstacle when off-screen
+
+# Game variables
+player = Player()
+all_sprites = pygame.sprite.Group()
+obstacles = pygame.sprite.Group()
+all_sprites.add(player)
+
+score = 0
+font = pygame.font.Font(None, 36)
+
+# Game loop
+running = True
+spawn_timer = 0
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.jump()
+
+    # Update
+    all_sprites.update()
+
+    # Spawn obstacles
+    spawn_timer += 1
+    if spawn_timer > 90: # Adjust for obstacle frequency
+        obstacle = Obstacle()
+        all_sprites.add(obstacle)
+        obstacles.add(obstacle)
+        spawn_timer = 0
+
+    # Collision detection
+    if pygame.sprite.spritecollide(player, obstacles, False):
+        running = False # Game over
+
+    # Increase score
+    score += 1
+
+    # Draw
+    screen.fill(BLACK)
+    all_sprites.draw(screen)
+
+    # Display score
+    score_text = font.render(f"Score: {score}", True, WHITE)
+    screen.blit(score_text, (10, 10))
+
+    pygame.display.flip()
+    clock.tick(60)
+
+pygame.quit()
