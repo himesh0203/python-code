@@ -1,0 +1,25 @@
+import geocoder
+
+def get_my_location():
+    """
+    Fetches the approximate current location (latitude and longitude)
+    based on the IP address.
+    """
+    try:
+        # 'me' tells geocoder to use your current IP address
+        myloc = geocoder.ip('me')
+        if myloc.latlng:
+            latitude, longitude = myloc.latlng
+            print(f"Your approximate current location:")
+            print(f"Latitude: {latitude}")
+            print(f"Longitude: {longitude}")
+            return latitude, longitude
+        else:
+            print("Could not determine your location.")
+            return None, None
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None, None
+
+if __name__ == "__main__":
+    get_my_location()
