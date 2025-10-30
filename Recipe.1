@@ -1,0 +1,32 @@
+    import requests
+
+    def get_recipes_by_ingredients(ingredients, diet_preference=None):
+        api_key = "YOUR_API_KEY" # Replace with your actual API key
+        base_url = "https://api.spoonacular.com/recipes/findByIngredients"
+        params = {
+            "ingredients": ",".join(ingredients),
+            "apiKey": api_key,
+            "number": 5 # Limit to 5 recipes
+        }
+        if diet_preference:
+            params["diet"] = diet_preference
+
+        try:
+            response = requests.get(base_url, params=params)
+            response.raise_for_status() # Raise an exception for HTTP errors
+            recipes = response.json()
+            return recipes
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching recipes: {e}")
+            return []
+
+    if __name__ == "__main__":
+        my_ingredients = ["chicken breast", "broccoli", "rice"]
+        vegetarian_recipes = get_recipes_by_ingredients(my_ingredients, diet_preference="vegetarian")
+
+        if vegetarian_recipes:
+            print("Suggested Recipes:")
+            for recipe in vegetarian_recipes:
+                print(f"- {recipe.get('title')}")
+        else:
+            print("No recipes found for your ingredients and preferences.")
