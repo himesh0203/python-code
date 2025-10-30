@@ -1,0 +1,86 @@
+class LearningPathGenerator:
+    def __init__(self, topics_data):
+        """
+        Initializes the learning path generator with a dictionary of topics and their prerequisites.
+        topics_data: A dictionary where keys are topics and values are lists of prerequisite topics.
+        """
+        self.topics_data = topics_data
+        self.user_knowledge = set()  # Topics the user already knows
+        self.user_interests = set()  # Topics the user wants to learn
+
+    def add_known_topic(self, topic):
+        """Adds a topic to the user's known topics."""
+        self.user_knowledge.add(topic)
+
+    def add_interest(self, topic):
+        """Adds a topic to the user's interests."""
+        self.user_interests.add(topic)
+
+    def generate_path(self):
+        """Generates a personalized learning path."""
+        recommended_path = []
+        target_topics = list(self.user_interests - self.user_knowledge)
+
+        while target_topics:
+            current_target = target_topics.pop(0)
+            if current_target in self.user_knowledge:
+                continue
+
+            prerequisites = self.topics_data.get(current_target, [])
+            all_prerequisites_met = True
+            for prereq in prerequisites:
+                if prereq not in self.user_knowledge:
+                    all_prerequisites_met = False
+                    # Add prerequisite to the front of target_topics to prioritize it
+                    if prereq not in target_topics and prereq not in recommended_path:
+                        target_topics.insert(0, prereq)
+                    break
+
+            if all_prerequisites_met:
+                recommended_path.append(current_target)
+                self.user_knowledge.add(current_target)  # Simulate learning
+            else:
+                # If prerequisites not met, re-add current_target to be processed later
+                target_topics.append(current_target)
+                
+            # Prevent infinite loops in case of circular dependencies or unfulfillable prerequisites
+            if len(target_topics) > len(self.topics_data) * 2: # Arbitrary limit
+                print("Warning: Could not resolve all dependencies or potential circular dependency detected.")
+                break
+
+        return recommended_path
+
+# Example Usage:
+if __name__ == "__main__":
+    # Define a simple topic hierarchy with prerequisites
+    course_topics = {
+        "Introduction to Programming": [],
+        "Python Basics": ["Introduction to Programming"],
+        "Data Structures": ["Python Basics"],
+        "Algorithms": ["Data Structures"],
+        "Web Development Fundamentals": ["Introduction to Programming"],
+        "Frontend Frameworks": ["Web Development Fundamentals"],
+        "Backend Development": ["Python Basics", "Data Structures"],
+        "Machine Learning Basics": ["Python Basics", "Algorithms"],
+    }
+
+    generator = LearningPathGenerator(course_topics)
+    generator.add_known_topic("Introduction to Programming")
+    generator.add_known_topic("Python Basics")
+    generator.add_interest("Machine Learning Basics")
+    generator.add_interest("Frontend Frameworks")
+
+    path = generator.generate_path()
+    print("Personalized Learning Path:")
+    for step in path:
+        print(f"- {step}")
+
+    print("\nAttempting a path with fewer known topics and more interests:")
+    generator_new = LearningPathGenerator(course_topics)
+    generator_new.add_known_topic("Introduction to Programming")
+    generator_new.add_interest("Backend Development")
+    generator_new.add_interest("Machine Learning Basics")
+    path_new = generator_new.generate_path()
+    print("Personalized Learning Path:")
+    for step in path_new:
+        print(f"- {step}")
