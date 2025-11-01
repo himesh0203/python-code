@@ -1,0 +1,98 @@
+name = "Python"
+print(name)
+print(type(name))   # str
+
+
+
+print(name[0])       # P
+print(name[1:4])     # yth
+print(name * 2)      # PythonPython
+print(name + " Rocks!")  
+
+
+
+fruits = ["apple", "banana", "cherry"]
+print(fruits)
+print(fruits[1])     # banana
+fruits.append("orange")   # Add new element
+print(fruits)
+
+
+
+mixed = [10, "hello", 3.14, True]
+
+
+
+coordinates = (10, 20, 30)
+print(coordinates)
+# coordinates[0] = 100   ❌ Error (cannot modify)
+
+
+
+
+nums = {1, 2, 3, 3, 2}
+print(nums)   # {1, 2, 3} (duplicates removed)
+nums.add(4)
+print(nums)
+
+
+
+student = {"name": "Alice", "age": 20, "marks": 85}
+print(student["name"])   # Alice
+student["age"] = 21      # update
+student["city"] = "Mumbai"   # add new key
+print(student)
+
+
+import array
+
+arr = array.array('i', [1, 2, 3, 4])  # 'i' = integer type
+print(arr)
+arr.append(5)
+print(arr)
+
+
+
+
+x = 10
+if x > 0:
+    print("Positive")
+elif x == 0:
+    print("Zero")
+else:
+    print("Negative")
+
+
+
+for i in range(5):
+    print(i)    # 0 to 4
+
+
+
+
+n = 3
+while n > 0:
+    print("Countdown:", n)
+    n -= 1
+
+
+
+
+for i in range(5):
+    if i == 3:
+        break
+    print(i)   # 0,1,2
+
+
+
+
+for i in range(5):
+    if i == 2:
+        continue
+    print(i)   # skips 2
+
+
+
+
+for i in range(3):
+    pass   # future code goes here
