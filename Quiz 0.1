@@ -1,0 +1,63 @@
+import random
+
+def run_quiz(questions):
+    score = 0
+    random.shuffle(questions) # Randomize question order
+
+    for i, q in enumerate(questions):
+        print(f"\nQuestion {i+1}: {q['question']}")
+        for j, option in enumerate(q['options']):
+            print(f"  {chr(65 + j)}. {option}")
+
+        while True:
+            user_answer = input("Your answer (A, B, C, or D): ").upper()
+            if user_answer in ['A', 'B', 'C', 'D'] and len(q['options']) > (ord(user_answer) - 65):
+                break
+            else:
+                print("Invalid input. Please enter A, B, C, or D.")
+
+        if user_answer == q['answer']:
+            print("Correct!")
+            score += 1
+        else:
+            print(f"Incorrect. The correct answer was {q['answer']}.")
+
+    print(f"\nQuiz finished! You scored {score} out of {len(questions)}.")
+
+# Define your questions
+it_questions = [
+    {
+        "question": "Which programming language is commonly used for AI and Machine Learning?",
+        "options": ["Java", "Python", "C++", "JavaScript"],
+        "answer": "B"
+    },
+    {
+        "question": "What is the primary purpose of CI/CD in software development?",
+        "options": ["Continuous Integration/Continuous Deployment", "Code Inspection/Code Debugging", "Client Interaction/Customer Data", "Cloud Infrastructure/Container Deployment"],
+        "answer": "A"
+    },
+    {
+        "question": "Which of the following is a popular cloud computing platform?",
+        "options": ["Microsoft Word", "Adobe Photoshop", "Amazon Web Services (AWS)", "Google Docs"],
+        "answer": "C"
+    },
+    {
+        "question": "What does 'SQL' stand for in database management?",
+        "options": ["Structured Query Language", "Standard Question Logic", "Sequential Query Library", "System Query Link"],
+        "answer": "A"
+    },
+    {
+        "question": "Which cybersecurity concept focuses on preventing unauthorized access to data?",
+        "options": ["Availability", "Integrity", "Confidentiality", "Non-repudiation"],
+        "answer": "C"
+    },
+    {
+        "question": "What is a common version control system used in software development?",
+        "options": ["Microsoft Excel", "Git", "PowerPoint", "Notepad"],
+        "answer": "B"
+    }
+]
+
+if __name__ == "__main__":
+    print("Welcome to the IT/CSE/AI/ML/Cloud Computing/Cybersecurity Quiz!")
+    run_quiz(it_questions)
