@@ -1,0 +1,101 @@
+import random
+import time
+
+class SurvivalGame:
+    def __init__(self):
+        self.player_health = 100
+        self.player_resources = 0
+        self.island_size = 10
+        self.player_x = random.randint(0, self.island_size - 1)
+        self.player_y = random.randint(0, self.island_size - 1)
+        self.game_over = False
+        self.days_survived = 0
+
+    def display_status(self):
+        """Displays the current game status."""
+        print("-" * 30)
+        print(f"Day: {self.days_survived}")
+        print(f"Health: {self.player_health}/100")
+        print(f"Resources: {self.player_resources}")
+        print(f"Location: ({self.player_x}, {self.player_y})")
+        print("-" * 30)
+
+    def move_player(self):
+        """Asks player for movement and updates position."""
+        direction = input("Enter direction (n/s/e/w) or 'q' to quit: ").lower()
+        if direction == 'q':
+            self.game_over = True
+            return
+
+        new_x, new_y = self.player_x, self.player_y
+        if direction == 'n':
+            new_y -= 1
+        elif direction == 's':
+            new_y += 1
+        elif direction == 'e':
+            new_x += 1
+        elif direction == 'w':
+            new_x -= 1
+        else:
+            print("Invalid input. Try again.")
+            return self.move_player()
+
+        # Check boundaries
+        if 0 <= new_x < self.island_size and 0 <= new_y < self.island_size:
+            self.player_x, self.player_y = new_x, new_y
+            print(f"Moved {direction}.")
+        else:
+            print("You hit the edge of the island!")
+
+    def encounter_event(self):
+        """Random events based on player's location."""
+        event_chance = random.randint(1, 100)
+
+        if event_chance <= 30:
+            # Resource find
+            found = random.randint(1, 5)
+            self.player_resources += found
+            print(f"You found {found} resources!")
+        elif event_chance <= 40:
+            # Danger event
+            damage = random.randint(5, 20)
+            self.player_health -= damage
+            print(f"You were attacked! Took {damage} damage.")
+        else:
+            print("Nothing interesting here...")
+
+    def end_day(self):
+        """Actions that happen at the end of a day."""
+        self.days_survived += 1
+        # Player loses 1 health per day unless they have resources to "eat"
+        if self.player_resources > 0:
+            self.player_resources -= 1
+            print("You used 1 resource to survive the night.")
+        else:
+            self.player_health -= 5
+            print("You are starving! You lost 5 health.")
+        
+        if self.player_health <= 0:
+            self.game_over = True
+            print("Your health reached zero. You died.")
+
+    def play(self):
+        """Main game loop."""
+        print("Welcome to Python Survival: Island Escape!")
+        print("Survive by gathering resources and managing health.")
+        
+        while not self.game_over:
+            self.display_status()
+            self.move_player()
+            if self.game_over:
+                break
+            self.encounter_event()
+            self.end_day()
+            time.sleep(1) # Pause for readability
+
+        print(f"\nGame Over! You survived for {self.days_survived} days.")
+
+# This block allows the script to be run directly
+if __name__ == "__main__":
+    game = SurvivalGame()
+    game.play()
