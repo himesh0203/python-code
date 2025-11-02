@@ -1,0 +1,73 @@
+import random
+
+def run_quiz():
+    questions = [
+        {
+            "question": "Which programming language is commonly used for AI and machine learning?",
+            "options": ["Java", "Python", "C++", "JavaScript"],
+            "answer": "Python"
+        },
+        {
+            "question": "What does 'CI/CD' stand for in software development?",
+            "options": ["Continuous Integration/Continuous Deployment", "Code Integration/Code Deployment", "Client Interface/Client Development", "Central Intelligence/Central Development"],
+            "answer": "Continuous Integration/Continuous Deployment"
+        },
+        {
+            "question": "Which cloud computing service model provides virtualized computing resources over the internet?",
+            "options": ["SaaS", "PaaS", "IaaS", "FaaS"],
+            "answer": "IaaS"
+        },
+        {
+            "question": "What is the primary purpose of a firewall in cybersecurity?",
+            "options": ["To speed up internet connection", "To filter network traffic", "To store data securely", "To manage user accounts"],
+            "answer": "To filter network traffic"
+        },
+        {
+            "question": "Which popular code editor is developed by Microsoft and known for its extensive extensions?",
+            "options": ["Sublime Text", "Vim", "VS Code", "Notepad++"],
+            "answer": "VS Code"
+        },
+        {
+            "question": "In web development, what language is used for structuring content on a web page?",
+            "options": ["CSS", "JavaScript", "Python", "HTML"],
+            "answer": "HTML"
+        },
+        {
+            "question": "Which term describes a system's ability to learn from data without explicit programming?",
+            "options": ["Data Mining", "Artificial Intelligence", "Machine Learning", "Cloud Computing"],
+            "answer": "Machine Learning"
+        }
+    ]
+
+    random.shuffle(questions)  # Randomize the order of questions
+    score = 0
+
+    print("Welcome to the IT/CSE/AI/ML/Cloud Computing/Cybersecurity Quiz!")
+    print("Answer the following questions to test your knowledge.")
+
+    for i, q in enumerate(questions):
+        print(f"\nQuestion {i + 1}: {q['question']}")
+        for j, option in enumerate(q['options']):
+            print(f"  {j + 1}. {option}")
+
+        while True:
+            try:
+                user_answer_index = int(input("Enter your answer number: ")) - 1
+                if 0 <= user_answer_index < len(q['options']):
+                    break
+                else:
+                    print("Invalid option. Please enter a number corresponding to an option.")
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+
+        if q['options'][user_answer_index] == q['answer']:
+            print("Correct!")
+            score += 1
+        else:
+            print(f"Incorrect. The correct answer was: {q['answer']}")
+
+    print(f"\nQuiz completed! Your final score is {score} out of {len(questions)}.")
+    print(f"Percentage: {(score / len(questions)) * 100:.2f}%")
+
+if __name__ == "__main__":
+    run_quiz()
