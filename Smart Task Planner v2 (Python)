@@ -1,0 +1,142 @@
+Setup
+
+Install required packages:
+
+pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib dateparser
+
+
+Get Google API credentials (credentials.json) from Google Cloud Console.
+
+Run the script:
+
+python smart_task_planner_v2.py
+
+
+
+
+# smart_task_planner_v2.py
+# Advanced Task Planner: AI parsing, Google Calendar integration, Pomodoro scheduling
+
+import re
+from datetime import datetime, timedelta
+import random
+import dateparser  # for natural language date parsing
+
+# Google Calendar API imports
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+import pickle
+import os
+
+SCOPES = ['https://www.googleapis.com/auth/calendar.events']
+
+# ------------------- Google Calendar Setup -------------------
+def get_calendar_service():
+    creds = None
+    if os.path.exists('token.pkl'):
+        with open('token.pkl', 'rb') as token:
+            creds = pickle.load(token)
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open('token.pkl', 'wb') as token:
+            pickle.dump(creds, token)
+    service = build('calendar', 'v3', credentials=creds)
+    return service
+
+# ------------------- Task Parsing -------------------
+def parse_task(task_str):
+    """
+    Returns dictionary: {'task': str, 'due': datetime, 'priority': int, 'duration': int}
+    """
+    # Extract date/time if any
+    due = dateparser.parse(task_str, settings={'PREFER_DATES_FROM': 'future'})
+    
+    # Estimate priority from keywords
+    keywords = {
+        "urgent": 5, "today": 5, "asap": 5,
+        "important": 4, "meeting": 4,
+        "email": 3, "call": 3,
+        "review": 2, "read": 1, "optional": 1
+    }
+    priority = sum(v for k,v in keywords.items() if k in task_str.lower()) or 2
+
+    # Estimate duration roughly
+    duration_mapping = {
+        "meeting": 30, "call": 30, "email": 10,
+        "reply": 10, "review": 20, "report": 60, "presentation": 60
+    }
+    duration = 20
+    for k, v in duration_mapping.items():
+        if k in task_str.lower():
+            duration = v
+            break
+
+    return {"task": task_str, "due": due, "priority": priority, "duration": duration}
+
+# ------------------- Pomodoro Scheduler -------------------
+def schedule_pomodoro(task):
+    """
+    Returns a list of Pomodoro sessions (25min work + 5min break)
+    """
+    sessions = []
+    remaining = task["duration"]
+    while remaining > 0:
+        work_time = min(25, remaining)
+        sessions.append({"task": task["task"], "work": work_time, "break": 5})
+        remaining -= work_time
+    return sessions
+
+# ------------------- Google Calendar Event -------------------
+def add_task_to_calendar(service, task):
+    start_time = task["due"] or datetime.now() + timedelta(minutes=10)
+    end_time = start_time + timedelta(minutes=task["duration"])
+    event = {
+        'summary': task["task"],
+        'description': f"Priority: {task['priority']} | Duration: {task['duration']}min",
+        'start': {'dateTime': start_time.isoformat(), 'timeZone': 'UTC'},
+        'end': {'dateTime': end_time.isoformat(), 'timeZone': 'UTC'}
+    }
+    created_event = service.events().insert(calendarId='primary', body=event).execute()
+    print(f"Added to Google Calendar: {created_event['summary']} at {start_time.strftime('%I:%M %p')}")
+
+# ------------------- Main Program -------------------
+if __name__ == "__main__":
+    print("Enter your tasks (type 'done' to finish):")
+    tasks_input = []
+    while True:
+        task = input("- ")
+        if task.lower() == "done":
+            break
+        if task.strip():
+            tasks_input.append(task)
+
+    tasks = [parse_task(t) for t in tasks_input]
+    tasks.sort(key=lambda x: x["priority"], reverse=True)
+
+    print("\n🧠 SMART DAILY PLAN WITH POMODORO AND CALENDAR SYNC")
+    print("="*60)
+
+    service = get_calendar_service()
+
+    for t in tasks:
+        print(f"\nTask: {t['task']}")
+        print(f"Priority: {t['priority']} | Duration: {t['duration']}min")
+        if t["due"]:
+            print(f"Due: {t['due'].strftime('%Y-%m-%d %H:%M')}")
+        else:
+            print("No due time detected")
+
+        # Pomodoro sessions
+        pomodoros = schedule_pomodoro(t)
+        for i, p in enumerate(pomodoros, 1):
+            print(f" Pomodoro {i}: Work {p['work']}min, Break {p['break']}min")
+
+        # Add to Google Calendar
+        add_task_to_calendar(service, t)
+
+    print("\n✅ All tasks processed and added to Google Calendar. Stay productive 🚀")
