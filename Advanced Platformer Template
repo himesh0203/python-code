@@ -1,0 +1,192 @@
+Install Pygame
+pip install pygame
+
+
+Project Structure
+platformer_game/
+│
+├── main.py
+└── assets/
+    ├── player.png       # Player image
+    ├── coin.png         # Collectible
+    └── enemy.png        # Enemy image
+
+
+You can use simple colored rectangles if you don’t have images yet.
+
+
+
+import pygame
+import sys
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("2D Platformer Game")
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+GOLD = (255, 215, 0)
+
+# Clock
+clock = pygame.time.Clock()
+FPS = 60
+
+# Gravity
+GRAVITY = 0.8
+
+# Player class
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.vel_y = 0
+        self.speed = 5
+        self.jumping = False
+
+    def update(self, platforms):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.rect.x -= self.speed
+        if keys[pygame.K_RIGHT]:
+            self.rect.x += self.speed
+
+        # Gravity
+        self.vel_y += GRAVITY
+        self.rect.y += self.vel_y
+
+        # Collision with platforms
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect) and self.vel_y > 0:
+                self.rect.bottom = platform.rect.top
+                self.vel_y = 0
+                self.jumping = False
+
+    def jump(self):
+        if not self.jumping:
+            self.vel_y = -15
+            self.jumping = True
+
+# Platform class
+class Platform(pygame.sprite.Sprite):
+    def __init__(self, x, y, w, h):
+        super().__init__()
+        self.image = pygame.Surface((w, h))
+        self.image.fill(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+
+# Coin class
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((30, 30))
+        self.image.fill(GOLD)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+# Enemy class
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, w=50, h=50):
+        super().__init__()
+        self.image = pygame.Surface((w, h))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.speed = 2
+
+    def update(self, platforms):
+        self.rect.x += self.speed
+        collision = False
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect):
+                collision = True
+                break
+        if self.rect.left <= 0 or self.rect.right >= WIDTH or collision:
+            self.speed *= -1
+
+# Groups
+player_group = pygame.sprite.Group()
+platform_group = pygame.sprite.Group()
+coin_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
+
+# Create player
+player = Player(100, 500)
+player_group.add(player)
+
+# Create platforms
+platforms = [
+    Platform(0, HEIGHT-20, WIDTH, 20),
+    Platform(150, 450, 200, 20),
+    Platform(400, 350, 200, 20),
+    Platform(650, 250, 100, 20)
+]
+platform_group.add(*platforms)
+
+# Create coins
+coins = [
+    Coin(250, 400),
+    Coin(500, 300),
+    Coin(700, 200)
+]
+coin_group.add(*coins)
+
+# Create enemy
+enemy = Enemy(300, 500)
+enemy_group.add(enemy)
+
+# Score
+score = 0
+font = pygame.font.SysFont(None, 36)
+
+# Game loop
+running = True
+while running:
+    clock.tick(FPS)
+    screen.fill(WHITE)
+
+    # Events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.jump()
+
+    # Update
+    player_group.update(platform_group)
+    enemy_group.update(platform_group)
+
+    # Check coin collection
+    collected = pygame.sprite.spritecollide(player, coin_group, True)
+    score += len(collected)
+
+    # Check enemy collision
+    if pygame.sprite.spritecollideany(player, enemy_group):
+        print("Game Over!")
+        running = False
+
+    # Draw
+    platform_group.draw(screen)
+    player_group.draw(screen)
+    coin_group.draw(screen)
+    enemy_group.draw(screen)
+
+    # Draw score
+    score_text = font.render(f"Score: {score}", True, BLACK)
+    screen.blit(score_text, (10, 10))
+
+    pygame.display.flip()
+
+pygame.quit()
+sys.exit()
