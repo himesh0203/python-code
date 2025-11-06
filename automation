@@ -1,0 +1,172 @@
+Install Required Libraries
+pip install pandas numpy matplotlib seaborn pdfkit jinja2 watchdog
+
+
+Make sure wkhtmltopdf is installed for PDF generation, as in the previous example.
+
+
+Project Structure
+auto_report_system/
+│
+├── analysis.py
+├── monitor.py
+├── templates/
+│   └── report_template.html
+├── data/          # Place new CSVs here
+└── results/       # Generated reports will go here
+
+
+monitor.py – Folder Watcher
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import subprocess
+import os
+
+# Folder paths
+DATA_FOLDER = "data"
+RESULTS_FOLDER = "results"
+
+os.makedirs(DATA_FOLDER, exist_ok=True)
+os.makedirs(RESULTS_FOLDER, exist_ok=True)
+
+class CSVHandler(FileSystemEventHandler):
+    def on_created(self, event):
+        if event.src_path.endswith(".csv"):
+            print(f"New CSV detected: {event.src_path}")
+            # Run analysis script
+            subprocess.run(["python", "analysis.py", event.src_path])
+
+if __name__ == "__main__":
+    event_handler = CSVHandler()
+    observer = Observer()
+    observer.schedule(event_handler, DATA_FOLDER, recursive=False)
+    observer.start()
+    print(f"Watching folder '{DATA_FOLDER}' for new CSV files...")
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
+
+
+analysis.py – Automated Report Generator
+import sys
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+import pdfkit
+from jinja2 import Environment, FileSystemLoader
+
+# Get CSV path from arguments
+if len(sys.argv) < 2:
+    print("Usage: python analysis.py <csv_file_path>")
+    sys.exit(1)
+
+csv_file = sys.argv[1]
+filename = os.path.splitext(os.path.basename(csv_file))[0]
+
+# Ensure results folder exists
+os.makedirs("results", exist_ok=True)
+
+# Load data
+data = pd.read_csv(csv_file)
+
+# -------------------------------
+# Data Cleaning
+# -------------------------------
+for col in data.columns:
+    if data[col].dtype in [np.float64, np.int64]:
+        data[col].fillna(data[col].mean(), inplace=True)
+    else:
+        data[col].fillna(data[col].mode()[0], inplace=True)
+
+# -------------------------------
+# Analysis
+# -------------------------------
+descriptive_stats = data.describe().round(2).to_html()
+dept_salary = data.groupby('Department')['Salary'].mean().round(2)
+dept_salary_table = dept_salary.to_frame().to_html()
+
+# -------------------------------
+# Visualizations
+# -------------------------------
+avg_salary_plot = f'results/{filename}_avg_salary.png'
+plt.figure(figsize=(8,6))
+sns.barplot(x=dept_salary.index, y=dept_salary.values)
+plt.title("Average Salary by Department")
+plt.ylabel("Salary")
+plt.xlabel("Department")
+plt.tight_layout()
+plt.savefig(avg_salary_plot)
+plt.close()
+
+age_distribution_plot = f'results/{filename}_age_distribution.png'
+plt.figure(figsize=(8,6))
+sns.histplot(data['Age'], bins=5, kde=True)
+plt.title("Age Distribution")
+plt.xlabel("Age")
+plt.ylabel("Frequency")
+plt.tight_layout()
+plt.savefig(age_distribution_plot)
+plt.close()
+
+corr_matrix = data.corr()
+correlation_plot = f'results/{filename}_correlation_heatmap.png'
+plt.figure(figsize=(8,6))
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm')
+plt.title("Correlation Heatmap")
+plt.tight_layout()
+plt.savefig(correlation_plot)
+plt.close()
+
+# -------------------------------
+# Generate HTML report
+# -------------------------------
+env = Environment(loader=FileSystemLoader('templates'))
+template = env.get_template('report_template.html')
+
+html_out = template.render(
+    descriptive_table=descriptive_stats,
+    dept_salary_table=dept_salary_table,
+    avg_salary_plot=avg_salary_plot,
+    age_distribution_plot=age_distribution_plot,
+    correlation_plot=correlation_plot
+)
+
+html_file = f'results/{filename}_report.html'
+with open(html_file, 'w') as f:
+    f.write(html_out)
+
+# Convert HTML to PDF
+pdf_file = f'results/{filename}_report.pdf'
+pdfkit.from_file(html_file, pdf_file)
+
+# Save cleaned data
+data.to_csv(f'results/{filename}_cleaned.csv', index=False)
+
+print(f"Report for '{csv_file}' generated successfully in 'results/' folder.")
+
+
+How It Works
+
+Run the folder monitor:
+
+python monitor.py
+
+
+Drop any new CSV file into the data/ folder.
+
+The system automatically:
+
+Cleans the data
+
+Generates analysis and visualizations
+
+Creates an HTML & PDF report
+
+Saves everything to the results/ folder
