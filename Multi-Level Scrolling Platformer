@@ -1,0 +1,238 @@
+Project Structure
+advanced_platformer/
+│
+├── main.py
+└── assets/
+    ├── player_idle.png
+    ├── player_run1.png
+    ├── player_run2.png
+    ├── enemy1.png
+    ├── enemy2.png
+    ├── coin.png
+
+
+You can use simple colored rectangles for testing before adding images.
+
+
+
+
+import pygame
+import sys
+
+pygame.init()
+
+# Screen
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Advanced Platformer")
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+GOLD = (255, 215, 0)
+
+clock = pygame.time.Clock()
+FPS = 60
+GRAVITY = 0.8
+
+# -------------------------
+# Player Class
+# -------------------------
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.images = [pygame.Surface((50,50)), pygame.Surface((50,50))]
+        self.images[0].fill(GREEN)
+        self.images[1].fill((0,200,0))
+        self.image_index = 0
+        self.image = self.images[self.image_index]
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.vel_y = 0
+        self.speed = 5
+        self.jumping = False
+        self.animation_timer = 0
+
+    def update(self, platforms, keys_pressed):
+        # Movement
+        if keys_pressed[pygame.K_LEFT]:
+            self.rect.x -= self.speed
+        if keys_pressed[pygame.K_RIGHT]:
+            self.rect.x += self.speed
+
+        # Gravity
+        self.vel_y += GRAVITY
+        self.rect.y += self.vel_y
+
+        # Collision with platforms
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect) and self.vel_y > 0:
+                self.rect.bottom = platform.rect.top
+                self.vel_y = 0
+                self.jumping = False
+
+        # Animate
+        self.animation_timer += 1
+        if self.animation_timer % 10 == 0:
+            self.image_index = (self.image_index + 1) % len(self.images)
+            self.image = self.images[self.image_index]
+
+    def jump(self):
+        if not self.jumping:
+            self.vel_y = -15
+            self.jumping = True
+
+# -------------------------
+# Platform Class
+# -------------------------
+class Platform(pygame.sprite.Sprite):
+    def __init__(self, x, y, w, h):
+        super().__init__()
+        self.image = pygame.Surface((w,h))
+        self.image.fill(BLACK)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+
+# -------------------------
+# Coin Class
+# -------------------------
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((30,30))
+        self.image.fill(GOLD)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+# -------------------------
+# Enemy Class
+# -------------------------
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, w=50, h=50):
+        super().__init__()
+        self.image = pygame.Surface((w,h))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (x, y)
+        self.speed = 2
+
+    def update(self, platforms):
+        self.rect.x += self.speed
+        collision = False
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect):
+                collision = True
+        if self.rect.left <= 0 or self.rect.right >= WIDTH or collision:
+            self.speed *= -1
+
+# -------------------------
+# Levels Definition
+# -------------------------
+levels = [
+    {
+        "platforms": [(0, HEIGHT-20, WIDTH, 20), (200, 450, 200, 20), (500, 350, 200, 20)],
+        "coins": [(250, 400), (550, 300)],
+        "enemies": [(400, HEIGHT-70)]
+    },
+    {
+        "platforms": [(0, HEIGHT-20, WIDTH, 20), (150, 400, 200, 20), (450, 300, 200, 20)],
+        "coins": [(200, 350), (500, 250)],
+        "enemies": [(300, HEIGHT-70), (600, HEIGHT-70)]
+    }
+]
+
+current_level = 0
+score = 0
+
+# Sprite groups
+player_group = pygame.sprite.Group()
+platform_group = pygame.sprite.Group()
+coin_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
+
+# Create player
+player = Player(100, HEIGHT-100)
+player_group.add(player)
+
+def load_level(level_index):
+    platform_group.empty()
+    coin_group.empty()
+    enemy_group.empty()
+    level = levels[level_index]
+    for p in level["platforms"]:
+        platform_group.add(Platform(*p))
+    for c in level["coins"]:
+        coin_group.add(Coin(*c))
+    for e in level["enemies"]:
+        enemy_group.add(Enemy(*e))
+
+load_level(current_level)
+
+# -------------------------
+# Main Game Loop
+# -------------------------
+scroll_x = 0  # Camera offset
+running = True
+while running:
+    clock.tick(FPS)
+    keys_pressed = pygame.key.get_pressed()
+    screen.fill(WHITE)
+
+    # Events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.jump()
+
+    # Update
+    player_group.update(platform_group, keys_pressed)
+    enemy_group.update(platform_group)
+
+    # Camera scrolling
+    if player.rect.centerx > WIDTH//2:
+        scroll_x = player.rect.centerx - WIDTH//2
+    else:
+        scroll_x = 0
+
+    # Draw platforms, coins, enemies
+    for sprite in platform_group:
+        screen.blit(sprite.image, (sprite.rect.x - scroll_x, sprite.rect.y))
+    for sprite in coin_group:
+        screen.blit(sprite.image, (sprite.rect.x - scroll_x, sprite.rect.y))
+    for sprite in enemy_group:
+        screen.blit(sprite.image, (sprite.rect.x - scroll_x, sprite.rect.y))
+    for sprite in player_group:
+        screen.blit(sprite.image, (sprite.rect.x - scroll_x, sprite.rect.y))
+
+    # Collect coins
+    collected = pygame.sprite.spritecollide(player, coin_group, True)
+    score += len(collected)
+
+    # Enemy collision
+    if pygame.sprite.spritecollideany(player, enemy_group):
+        print("Game Over!")
+        running = False
+
+    # Level completion
+    if player.rect.right > max(p.rect.right for p in platform_group):
+        current_level += 1
+        if current_level < len(levels):
+            load_level(current_level)
+            player.rect.topleft = (100, HEIGHT-100)
+        else:
+            print("You won! Final score:", score)
+            running = False
+
+    # Draw score
+    font = pygame.font.SysFont(None, 36)
+    score_text = font.render(f"Score: {score}", True, BLACK)
+    screen.blit(score_text, (10, 10))
+
+    pygame.display.flip()
+
+pygame.quit()
+sys.exit()
