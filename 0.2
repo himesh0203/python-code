@@ -1,0 +1,259 @@
+structure 
+
+pro_platformer/
+│
+├── main.py
+└── assets/
+    ├── player_idle1.png
+    ├── player_idle2.png
+    ├── player_run1.png
+    ├── player_run2.png
+    ├── player_jump.png
+    ├── enemy1.png
+    ├── enemy2.png
+    ├── coin.png
+    ├── power_speed.png
+    ├── power_doublejump.png
+    ├── bg_layer1.png
+    ├── bg_layer2.png
+    ├── bg_layer3.png
+    └── sounds/
+        ├── jump.wav
+        ├── coin.wav
+        ├── hit.wav
+        └── bg_music.mp3
+
+
+import pygame, sys
+pygame.init()
+
+# -----------------------------
+# Screen setup
+# -----------------------------
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Pro Platformer")
+
+# -----------------------------
+# Colors
+# -----------------------------
+WHITE = (255,255,255)
+BLACK = (0,0,0)
+GOLD = (255,215,0)
+
+# -----------------------------
+# Clock & FPS
+# -----------------------------
+clock = pygame.time.Clock()
+FPS = 60
+GRAVITY = 0.8
+
+# -----------------------------
+# Load sounds
+# -----------------------------
+jump_sound = pygame.mixer.Sound("assets/sounds/jump.wav")
+coin_sound = pygame.mixer.Sound("assets/sounds/coin.wav")
+hit_sound = pygame.mixer.Sound("assets/sounds/hit.wav")
+pygame.mixer.music.load("assets/sounds/bg_music.mp3")
+pygame.mixer.music.play(-1)  # Loop background music
+
+# -----------------------------
+# Player Class with Animations & Powerups
+# -----------------------------
+class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        # Load images for animations
+        self.idle_images = [pygame.Surface((50,50)), pygame.Surface((50,50))]
+        self.idle_images[0].fill((0,255,0))
+        self.idle_images[1].fill((0,200,0))
+        self.run_images = [pygame.Surface((50,50)), pygame.Surface((50,50))]
+        self.run_images[0].fill((0,255,100))
+        self.run_images[1].fill((0,200,100))
+        self.jump_image = pygame.Surface((50,50))
+        self.jump_image.fill((0,150,0))
+        self.image = self.idle_images[0]
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.vel_y = 0
+        self.speed = 5
+        self.jumping = False
+        self.can_double_jump = False
+        self.animation_index = 0
+        self.animation_timer = 0
+        self.power_speed = False
+
+    def update(self, platforms, keys_pressed):
+        # Horizontal movement
+        move_speed = self.speed * 1.5 if self.power_speed else self.speed
+        if keys_pressed[pygame.K_LEFT]:
+            self.rect.x -= move_speed
+            self.animate("run")
+        elif keys_pressed[pygame.K_RIGHT]:
+            self.rect.x += move_speed
+            self.animate("run")
+        else:
+            self.animate("idle")
+
+        # Gravity
+        self.vel_y += GRAVITY
+        self.rect.y += self.vel_y
+
+        # Collision
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect) and self.vel_y > 0:
+                self.rect.bottom = platform.rect.top
+                self.vel_y = 0
+                self.jumping = False
+                self.can_double_jump = True
+
+    def jump(self):
+        if not self.jumping:
+            self.vel_y = -15
+            self.jumping = True
+            jump_sound.play()
+        elif self.can_double_jump:
+            self.vel_y = -15
+            self.can_double_jump = False
+            jump_sound.play()
+
+    def animate(self, action):
+        self.animation_timer += 1
+        if self.animation_timer % 10 == 0:
+            self.animation_index = (self.animation_index + 1) % 2
+        if action == "idle":
+            self.image = self.idle_images[self.animation_index]
+        elif action == "run":
+            self.image = self.run_images[self.animation_index]
+        elif action == "jump":
+            self.image = self.jump_image
+
+# -----------------------------
+# Platform, Coin, Enemy, Powerup Classes
+# -----------------------------
+class Platform(pygame.sprite.Sprite):
+    def __init__(self, x, y, w, h):
+        super().__init__()
+        self.image = pygame.Surface((w,h))
+        self.image.fill((0,0,0))
+        self.rect = self.image.get_rect(topleft=(x,y))
+
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((30,30))
+        self.image.fill(GOLD)
+        self.rect = self.image.get_rect(center=(x,y))
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y, w=50, h=50):
+        super().__init__()
+        self.image = pygame.Surface((w,h))
+        self.image.fill((255,0,0))
+        self.rect = self.image.get_rect(topleft=(x,y))
+        self.speed = 2
+    def update(self, platforms):
+        self.rect.x += self.speed
+        collision = False
+        for platform in platforms:
+            if self.rect.colliderect(platform.rect):
+                collision = True
+        if self.rect.left <= 0 or self.rect.right >= WIDTH or collision:
+            self.speed *= -1
+
+class PowerUp(pygame.sprite.Sprite):
+    def __init__(self, x, y, type="speed"):
+        super().__init__()
+        self.image = pygame.Surface((30,30))
+        self.image.fill((0,0,255) if type=="speed" else (255,255,0))
+        self.rect = self.image.get_rect(center=(x,y))
+        self.type = type
+
+# -----------------------------
+# Groups
+# -----------------------------
+player_group = pygame.sprite.Group()
+platform_group = pygame.sprite.Group()
+coin_group = pygame.sprite.Group()
+enemy_group = pygame.sprite.Group()
+powerup_group = pygame.sprite.Group()
+
+player = Player(100, 500)
+player_group.add(player)
+
+# Example Level
+platform_group.add(Platform(0, HEIGHT-20, WIDTH, 20))
+platform_group.add(Platform(200, 400, 200, 20))
+coin_group.add(Coin(250,350))
+enemy_group.add(Enemy(400, HEIGHT-70))
+powerup_group.add(PowerUp(600, HEIGHT-50, "speed"))
+
+# -----------------------------
+# Camera / Scrolling
+# -----------------------------
+scroll_x = 0
+
+# -----------------------------
+# Main Game Loop
+# -----------------------------
+score = 0
+running = True
+while running:
+    clock.tick(FPS)
+    keys_pressed = pygame.key.get_pressed()
+    screen.fill(WHITE)
+
+    # Events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                player.jump()
+
+    # Update
+    player_group.update(platform_group, keys_pressed)
+    enemy_group.update(platform_group)
+
+    # Camera
+    if player.rect.centerx > WIDTH//2:
+        scroll_x = player.rect.centerx - WIDTH//2
+    else:
+        scroll_x = 0
+
+    # Draw
+    for sprite in platform_group:
+        screen.blit(sprite.image, (sprite.rect.x - scroll_x, sprite.rect.y))
+    for sprite in coin_group:
+        screen.blit(sprite.image, (sprite.rect.x - scroll_x, sprite.rect.y))
+    for sprite in enemy_group:
+        screen.blit(sprite.image, (sprite.rect.x - scroll_x, sprite.rect.y))
+    for sprite in powerup_group:
+        screen.blit(sprite.image, (sprite.rect.x - scroll_x, sprite.rect.y))
+    for sprite in player_group:
+        screen.blit(sprite.image, (sprite.rect.x - scroll_x, sprite.rect.y))
+
+    # Collisions
+    collected_coins = pygame.sprite.spritecollide(player, coin_group, True)
+    for coin in collected_coins:
+        score += 1
+        coin_sound.play()
+
+    collected_powerups = pygame.sprite.spritecollide(player, powerup_group, True)
+    for power in collected_powerups:
+        if power.type == "speed":
+            player.power_speed = True
+
+    if pygame.sprite.spritecollideany(player, enemy_group):
+        hit_sound.play()
+        print("Game Over!")
+        running = False
+
+    # Draw Score
+    font = pygame.font.SysFont(None,36)
+    score_text = font.render(f"Score: {score}", True, BLACK)
+    screen.blit(score_text, (10,10))
+
+    pygame.display.flip()
+
+pygame.quit()
+sys.exit()
